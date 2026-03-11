@@ -9,10 +9,12 @@
       "name": "claude-improver",
       "description": "Analyzes past interactions and repo patterns to propose actionable self-improvements.",
       "version": "1.0.0",
-      "author": "joedac-netvigie",
+      "author": {
+        "name": "joedac-netvigie"
+      },
       "source": {
-        "type": "relative",
-        "path": "."
+        "type": "github",
+        "repo": "joedac-netvigie/claude-improver"
       }
     }
   ]
