@@ -13,7 +13,7 @@
         "name": "joedac-netvigie"
       },
       "source": {
-        "type": "github",
+        "source": "github",
         "repo": "joedac-netvigie/claude-improver"
       }
     }
