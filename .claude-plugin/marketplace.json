@@ -12,10 +12,7 @@
       "author": {
         "name": "Joedac"
       },
-      "source": {
-        "source": "github",
-        "repo": "Joedac/claude-improver"
-      }
+      "source": "./"
     }
   ]
 }
