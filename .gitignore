@@ -1,0 +1,7 @@
+node_modules/
+# dist/ is intentionally committed so the plugin works without a build step
+# DO NOT add dist/ here
+*.tsbuildinfo
+.DS_Store
+*.local
+.claude/

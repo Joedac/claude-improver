@@ -1,0 +1,12 @@
+{
+  "name": "claude-improver",
+  "description": "Analyzes your past interactions and repo patterns to propose actionable self-improvements: new skills, commands, and CLAUDE.md updates.",
+  "version": "1.0.0",
+  "author": {
+    "name": "joedac-netvigie",
+    "url": "https://github.com/joedac-netvigie"
+  },
+  "repository": "https://github.com/joedac-netvigie/claude-improver",
+  "license": "MIT",
+  "keywords": ["improvement", "analysis", "skills", "automation"]
+}
