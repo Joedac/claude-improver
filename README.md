@@ -11,14 +11,14 @@ A Claude Code plugin that analyzes your past interactions and repository pattern
 Dans Claude Code :
 
 ```
-/plugin marketplace add joedac-netvigie/claude-improver
+/plugin marketplace add Joedac/claude-improver
 /plugin install claude-improver
 ```
 
 ### Option B — Manual install from GitHub
 
 ```bash
-git clone https://github.com/joedac-netvigie/claude-improver \
+git clone https://github.com/Joedac/claude-improver \
   ~/.claude/plugins/claude-improver
 ```
 
@@ -34,7 +34,7 @@ Claude Code will automatically:
 To use the plugin only in a specific project:
 
 ```bash
-git clone https://github.com/joedac-netvigie/claude-improver \
+git clone https://github.com/Joedac/claude-improver \
   /path/to/your-project/.claude/plugins/claude-improver
 ```
 
