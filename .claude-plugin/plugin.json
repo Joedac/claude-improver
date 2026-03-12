@@ -8,5 +8,6 @@
   },
   "repository": "https://github.com/Joedac/claude-improver",
   "license": "MIT",
-  "keywords": ["improvement", "analysis", "skills", "automation"]
+  "keywords": ["improvement", "analysis", "skills", "automation"],
+  "mcpServers": "./.mcp.json"
 }
