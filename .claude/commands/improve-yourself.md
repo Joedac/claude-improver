@@ -6,6 +6,8 @@ You are running the `/improve-yourself` command from the **claude-improver** plu
 
 ## Your task
 
+**IMPORTANT: Always call `improve_yourself_analyze` fresh — never reuse previous results from the conversation context.**
+
 Analyze this project's history and propose improvements by calling the MCP tools provided by the `claude-improver` server in this exact sequence:
 
 ### Step 1 – Analyze
