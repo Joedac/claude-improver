@@ -24924,6 +24924,16 @@ var REPEATED_TASK_SIGNALS = [
   "refactoriser",
   "ajouter les types"
 ];
+function normalizeBashCommand(cmd) {
+  const trimmed2 = cmd.trim().replace(/\s+/g, " ");
+  const parts = trimmed2.split(" ");
+  const exe = parts[0] ?? "";
+  const multiWord = ["git", "npm", "npx", "composer", "python", "python3", "php", "pytest", "cargo", "go", "make"];
+  if (multiWord.includes(exe) && parts[1]) {
+    return `${exe} ${parts[1]}`;
+  }
+  return exe.slice(0, 30);
+}
 var IGNORED_RECORD_TYPES = /* @__PURE__ */ new Set([
   "file-history-snapshot",
   "tool_result",
@@ -24936,12 +24946,15 @@ var ConversationAnalyzer = class {
     this.projectRoot = projectRoot;
   }
   async analyze() {
-    const entries = await this.loadConversations();
+    const { entries, toolCalls } = await this.loadConversations();
     if (entries.length === 0) {
       return { patterns: [], stats: { conversationsAnalyzed: 0 } };
     }
     const analysis = this.analyzeEntries(entries);
-    const patterns = this.buildPatterns(analysis);
+    const patterns = [
+      ...this.buildPatterns(analysis),
+      ...this.analyzeToolCalls(toolCalls)
+    ];
     return {
       patterns,
       stats: { conversationsAnalyzed: entries.length }
@@ -24950,42 +24963,72 @@ var ConversationAnalyzer = class {
   // ── Loading ────────────────────────────────────────────────────────────────
   async loadConversations() {
     const entries = [];
+    const toolCalls = [];
+    const push = (result) => {
+      entries.push(...result.entries);
+      toolCalls.push(...result.toolCalls);
+    };
     const projectDataDir = await findProjectDataDir(this.projectRoot);
     if (projectDataDir) {
       const sessionFiles = await findSessionFiles(projectDataDir);
       for (const file of sessionFiles.slice(0, 50)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
     const localClaudeDir = `${this.projectRoot}/.claude`;
     if (await directoryExists(localClaudeDir)) {
       const jsonlFiles = await findFiles("*.jsonl", localClaudeDir);
       for (const file of jsonlFiles.slice(0, 20)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
     if (entries.length === 0) {
       const globalDir = getClaudeDataDir();
       const globalJsonl = await findFiles("*.jsonl", globalDir);
       for (const file of globalJsonl.slice(0, 5)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
-    return entries;
+    return { entries, toolCalls };
   }
   async loadJsonlFile(filePath) {
     const text = await readTextFile(filePath);
-    if (!text) return [];
+    if (!text) return { entries: [], toolCalls: [] };
     const entries = [];
+    const toolCalls = [];
     for (const line of text.split("\n").filter(Boolean)) {
       try {
         const record2 = JSON.parse(line);
-        const extracted = this.extractEntriesFromRecord(record2);
-        entries.push(...extracted);
+        entries.push(...this.extractEntriesFromRecord(record2));
+        toolCalls.push(...this.extractToolCallsFromRecord(record2));
       } catch {
       }
     }
-    return entries;
+    return { entries, toolCalls };
+  }
+  extractToolCallsFromRecord(record2) {
+    if (!record2 || typeof record2 !== "object") return [];
+    const r = record2;
+    const msg = r["message"];
+    if (!msg || typeof msg !== "object") return [];
+    const m = msg;
+    if (m["role"] !== "assistant") return [];
+    const content = m["content"];
+    if (!Array.isArray(content)) return [];
+    const result = [];
+    for (const block of content) {
+      if (block["type"] !== "tool_use") continue;
+      const tool = String(block["name"] ?? "");
+      const input = block["input"] ?? {};
+      if (tool === "Bash") {
+        const cmd = String(input["command"] ?? "");
+        if (cmd) result.push({ tool, command: normalizeBashCommand(cmd) });
+      } else if (["Read", "Edit", "Write", "Glob"].includes(tool)) {
+        const fp = String(input["file_path"] ?? input["pattern"] ?? "");
+        if (fp) result.push({ tool, filePath: fp });
+      }
+    }
+    return result;
   }
   // ── Extraction ─────────────────────────────────────────────────────────────
   /**
@@ -25095,6 +25138,45 @@ var ConversationAnalyzer = class {
       }
     }
     return { repeatedPhrases, corrections, workflows };
+  }
+  // ── Tool call analysis ─────────────────────────────────────────────────────
+  analyzeToolCalls(toolCalls) {
+    const patterns = [];
+    const bashCounts = /* @__PURE__ */ new Map();
+    for (const tc of toolCalls) {
+      if (tc.tool === "Bash" && tc.command) {
+        bashCounts.set(tc.command, (bashCounts.get(tc.command) ?? 0) + 1);
+      }
+    }
+    for (const [command, count] of bashCounts) {
+      if (count < 5) continue;
+      patterns.push({
+        id: `bash-${command.replace(/\s+/g, "-")}`,
+        type: "repetitive-workflow",
+        frequency: count,
+        examples: [`\`${command}\` ex\xE9cut\xE9 ${count} fois`],
+        confidence: Math.min(count / 15, 1),
+        metadata: { source: "tool-calls", tool: "Bash", command }
+      });
+    }
+    const fileCounts = /* @__PURE__ */ new Map();
+    for (const tc of toolCalls) {
+      if ((tc.tool === "Edit" || tc.tool === "Write") && tc.filePath) {
+        fileCounts.set(tc.filePath, (fileCounts.get(tc.filePath) ?? 0) + 1);
+      }
+    }
+    const hotFiles = [...fileCounts.entries()].filter(([, count]) => count >= 4).sort((a3, b) => b[1] - a3[1]).slice(0, 5);
+    if (hotFiles.length > 0) {
+      patterns.push({
+        id: "tool-hot-files",
+        type: "repetitive-workflow",
+        frequency: hotFiles.reduce((s, [, c]) => s + c, 0),
+        examples: hotFiles.map(([f, c]) => `${f} (\xE9dit\xE9 ${c}x)`),
+        confidence: 0.7,
+        metadata: { source: "tool-calls", hotFiles: hotFiles.map(([p, count]) => ({ path: p, count })) }
+      });
+    }
+    return patterns;
   }
   // ── Pattern building ───────────────────────────────────────────────────────
   buildPatterns(analysis) {
@@ -29909,22 +29991,32 @@ var WorkflowAnalyzer = class {
     const frequentPaths = [];
     const commonMessages = [];
     const recentActivity = [];
+    const allMessages = [];
+    const commitTypeCounts = /* @__PURE__ */ new Map();
     let commitsAnalyzed = 0;
     const isGit = await directoryExists(import_path4.default.join(this.projectRoot, ".git"));
     if (!isGit) {
-      return { frequentPaths, commonMessages, recentActivity, commitsAnalyzed };
+      return { frequentPaths, commonMessages, recentActivity, allMessages, commitTypeCounts, commitsAnalyzed };
     }
     try {
-      const log = await this.git.log({ maxCount: 200 });
+      const log = await this.git.log({ maxCount: 50 });
       commitsAnalyzed = log.all.length;
       const messages = log.all.map((c) => c.message);
       recentActivity.push(...messages.slice(0, 10));
+      allMessages.push(...messages);
+      for (const msg of messages) {
+        const match2 = msg.match(/^(feat|fix|refactor|chore|docs|test|style|perf)(\(.+?\))?:/i);
+        if (match2) {
+          const type = match2[1].toLowerCase();
+          commitTypeCounts.set(type, (commitTypeCounts.get(type) ?? 0) + 1);
+        }
+      }
       const phrases = extractRepeatedPhrases(messages, 2, 3);
       for (const phrase of phrases.slice(0, 10)) {
         commonMessages.push({ pattern: phrase.phrase, count: phrase.count });
       }
       const fileCounts = /* @__PURE__ */ new Map();
-      for (const commit of log.all.slice(0, 50)) {
+      for (const commit of log.all) {
         try {
           const diff = await this.git.show(["--name-only", "--format=", commit.hash]);
           const files = diff.split("\n").filter((f) => f.trim() && !f.startsWith("diff"));
@@ -29940,7 +30032,7 @@ var WorkflowAnalyzer = class {
       }
     } catch {
     }
-    return { frequentPaths, commonMessages, recentActivity, commitsAnalyzed };
+    return { frequentPaths, commonMessages, recentActivity, allMessages, commitTypeCounts, commitsAnalyzed };
   }
   async analyzePRs() {
     const patterns = [];
@@ -29967,7 +30059,7 @@ var WorkflowAnalyzer = class {
     const detectedPatterns = [];
     const workflowCounts = /* @__PURE__ */ new Map();
     for (const { pattern, label } of WORKFLOW_KEYWORDS) {
-      const matches = gitAnalysis.recentActivity.filter((m) => pattern.test(m));
+      const matches = gitAnalysis.allMessages.filter((m) => pattern.test(m));
       if (matches.length >= 2) {
         const existing = workflowCounts.get(label);
         if (existing) {
@@ -29995,6 +30087,17 @@ var WorkflowAnalyzer = class {
         examples: data.examples.slice(0, 3),
         confidence: Math.min(data.count / 6, 1),
         metadata: { label, workflowType: label }
+      });
+    }
+    for (const [type, count] of gitAnalysis.commitTypeCounts) {
+      if (count < 5) continue;
+      detectedPatterns.push({
+        id: `commit-type-${type}`,
+        type: "repetitive-workflow",
+        frequency: count,
+        examples: [`${count} "${type}:" commits in the last ${gitAnalysis.allMessages.length} commits`],
+        confidence: Math.min(count / 10, 1),
+        metadata: { commitType: type }
       });
     }
     if (gitAnalysis.frequentPaths.length > 0) {
@@ -30583,7 +30686,9 @@ var ImprovementHistoryStore = class {
   }
   async load() {
     const data = await readJsonFile(this.historyPath);
-    return data ?? { version: HISTORY_VERSION, improvements: [] };
+    if (!data) return { version: HISTORY_VERSION, improvements: [], rejections: [] };
+    if (!data.rejections) data.rejections = [];
+    return data;
   }
   async record(improvements) {
     const history = await this.load();
@@ -30600,6 +30705,24 @@ var ImprovementHistoryStore = class {
       });
     }
     await writeJsonFile(this.historyPath, history);
+  }
+  async recordRejections(improvements) {
+    const history = await this.load();
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    for (const imp of improvements) {
+      const idx = history.rejections.findIndex((r) => r.id === imp.id);
+      if (idx !== -1) history.rejections.splice(idx, 1);
+      history.rejections.push({ id: imp.id, name: imp.name, type: imp.type, rejectedAt: now });
+    }
+    await writeJsonFile(this.historyPath, history);
+  }
+  async wasRejected(id) {
+    const history = await this.load();
+    return history.rejections.some((r) => r.id === id);
+  }
+  async getRejectedIds() {
+    const history = await this.load();
+    return new Set(history.rejections.map((r) => r.id));
   }
   async getApplied() {
     const history = await this.load();
@@ -30760,18 +30883,20 @@ async function runImproveYourself(opts) {
     await claudeMdGen.generateFromPatterns(allPatterns)
   ];
   const seen = /* @__PURE__ */ new Set();
+  const store = new ImprovementHistoryStore(projectRoot);
+  const rejectedIds = await store.getRejectedIds();
   const improvements = rawImprovements.filter((i) => i !== null).filter((i) => {
     if (seen.has(i.id)) return false;
     seen.add(i.id);
     return true;
-  }).sort((a3, b) => b.score - a3.score);
+  }).filter((i) => !rejectedIds.has(i.id)).sort((a3, b) => b.score - a3.score);
   const analysis = { patterns: allPatterns, improvements, stats };
   if (opts.selectedIds && opts.selectedIds.length > 0 && !opts.dryRun) {
     const toApply = improvements.filter((i) => opts.selectedIds.includes(i.id));
     const result = await applyImprovements(toApply, projectRoot, false);
     if (result.applied.length > 0) {
-      const store = new ImprovementHistoryStore(projectRoot);
-      await store.record(result.applied);
+      const store2 = new ImprovementHistoryStore(projectRoot);
+      await store2.record(result.applied);
     }
     return {
       analysis,
@@ -30863,6 +30988,11 @@ var TOOLS = [
           items: { type: "string" },
           description: 'List of improvement IDs to apply. Use ["all"] to apply everything.'
         },
+        rejected_ids: {
+          type: "array",
+          items: { type: "string" },
+          description: "IDs of improvements the user explicitly rejected. They will not be proposed again in future runs."
+        },
         project_root: {
           type: "string",
           description: "Absolute path to the project root."
@@ -30894,6 +31024,7 @@ var PreviewSchema = external_exports.object({
 });
 var ApplySchema = external_exports.object({
   improvement_ids: external_exports.array(external_exports.string()).min(1),
+  rejected_ids: external_exports.array(external_exports.string()).optional(),
   project_root: external_exports.string().optional()
 });
 var HistorySchema = external_exports.object({
@@ -30987,7 +31118,7 @@ Call \`improve_yourself_apply\` with the IDs you want to apply.` : ""
         };
       }
       case "improve_yourself_apply": {
-        const { improvement_ids, project_root } = ApplySchema.parse(args ?? {});
+        const { improvement_ids, rejected_ids, project_root } = ApplySchema.parse(args ?? {});
         const projectRoot = project_root ?? process.cwd();
         const cached2 = getCached(projectRoot);
         if (!cached2) {
@@ -31003,9 +31134,15 @@ Call \`improve_yourself_apply\` with the IDs you want to apply.` : ""
         }
         const result = await applyImprovements(toApply, projectRoot, false);
         const summary = renderSummaryReport(result, false);
+        const store = new ImprovementHistoryStore(projectRoot);
         if (result.applied.length > 0) {
-          const store = new ImprovementHistoryStore(projectRoot);
           await store.record(result.applied);
+        }
+        if (rejected_ids && rejected_ids.length > 0) {
+          const rejectedImprovements = cached2.improvements.filter((i) => rejected_ids.includes(i.id));
+          if (rejectedImprovements.length > 0) {
+            await store.recordRejections(rejectedImprovements);
+          }
         }
         return { content: [{ type: "text", text: summary }] };
       }

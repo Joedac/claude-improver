@@ -68,6 +68,23 @@ const REPEATED_TASK_SIGNALS = [
   'ajouter les types',
 ];
 
+interface ToolCallEntry {
+  tool: string;
+  command?: string;   // pour Bash
+  filePath?: string;  // pour Read, Edit, Write, Glob
+}
+
+function normalizeBashCommand(cmd: string): string {
+  const trimmed = cmd.trim().replace(/\s+/g, ' ');
+  const parts = trimmed.split(' ');
+  const exe = parts[0] ?? '';
+  const multiWord = ['git', 'npm', 'npx', 'composer', 'python', 'python3', 'php', 'pytest', 'cargo', 'go', 'make'];
+  if (multiWord.includes(exe) && parts[1]) {
+    return `${exe} ${parts[1]}`;
+  }
+  return exe.slice(0, 30);
+}
+
 /**
  * Claude Code JSONL records that should be ignored (not user intents).
  */
@@ -86,13 +103,16 @@ export class ConversationAnalyzer {
   }
 
   async analyze(): Promise<{ patterns: DetectedPattern[]; stats: { conversationsAnalyzed: number } }> {
-    const entries = await this.loadConversations();
+    const { entries, toolCalls } = await this.loadConversations();
     if (entries.length === 0) {
       return { patterns: [], stats: { conversationsAnalyzed: 0 } };
     }
 
     const analysis = this.analyzeEntries(entries);
-    const patterns = this.buildPatterns(analysis);
+    const patterns = [
+      ...this.buildPatterns(analysis),
+      ...this.analyzeToolCalls(toolCalls),
+    ];
 
     return {
       patterns,
@@ -102,15 +122,21 @@ export class ConversationAnalyzer {
 
   // ── Loading ────────────────────────────────────────────────────────────────
 
-  private async loadConversations(): Promise<ConversationEntry[]> {
+  private async loadConversations(): Promise<{ entries: ConversationEntry[]; toolCalls: ToolCallEntry[] }> {
     const entries: ConversationEntry[] = [];
+    const toolCalls: ToolCallEntry[] = [];
+
+    const push = (result: { entries: ConversationEntry[]; toolCalls: ToolCallEntry[] }) => {
+      entries.push(...result.entries);
+      toolCalls.push(...result.toolCalls);
+    };
 
     // 1. Claude Code project-specific sessions (primary source)
     const projectDataDir = await findProjectDataDir(this.projectRoot);
     if (projectDataDir) {
       const sessionFiles = await findSessionFiles(projectDataDir);
       for (const file of sessionFiles.slice(0, 50)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
 
@@ -119,37 +145,66 @@ export class ConversationAnalyzer {
     if (await directoryExists(localClaudeDir)) {
       const jsonlFiles = await findFiles('*.jsonl', localClaudeDir);
       for (const file of jsonlFiles.slice(0, 20)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
 
-    // 3. Fallback: global ~/.claude/*.jsonl (history.jsonl etc.) — only user messages
+    // 3. Fallback: global ~/.claude/*.jsonl
     if (entries.length === 0) {
       const globalDir = getClaudeDataDir();
       const globalJsonl = await findFiles('*.jsonl', globalDir);
       for (const file of globalJsonl.slice(0, 5)) {
-        entries.push(...await this.loadJsonlFile(file));
+        push(await this.loadJsonlFile(file));
       }
     }
 
-    return entries;
+    return { entries, toolCalls };
   }
 
-  private async loadJsonlFile(filePath: string): Promise<ConversationEntry[]> {
+  private async loadJsonlFile(filePath: string): Promise<{ entries: ConversationEntry[]; toolCalls: ToolCallEntry[] }> {
     const text = await readTextFile(filePath);
-    if (!text) return [];
+    if (!text) return { entries: [], toolCalls: [] };
 
     const entries: ConversationEntry[] = [];
+    const toolCalls: ToolCallEntry[] = [];
     for (const line of text.split('\n').filter(Boolean)) {
       try {
         const record = JSON.parse(line);
-        const extracted = this.extractEntriesFromRecord(record);
-        entries.push(...extracted);
+        entries.push(...this.extractEntriesFromRecord(record));
+        toolCalls.push(...this.extractToolCallsFromRecord(record));
       } catch {
         // skip malformed lines
       }
     }
-    return entries;
+    return { entries, toolCalls };
+  }
+
+  private extractToolCallsFromRecord(record: unknown): ToolCallEntry[] {
+    if (!record || typeof record !== 'object') return [];
+    const r = record as Record<string, unknown>;
+    const msg = r['message'];
+    if (!msg || typeof msg !== 'object') return [];
+    const m = msg as Record<string, unknown>;
+    if (m['role'] !== 'assistant') return [];
+
+    const content = m['content'];
+    if (!Array.isArray(content)) return [];
+
+    const result: ToolCallEntry[] = [];
+    for (const block of content as Array<Record<string, unknown>>) {
+      if (block['type'] !== 'tool_use') continue;
+      const tool = String(block['name'] ?? '');
+      const input = (block['input'] ?? {}) as Record<string, unknown>;
+
+      if (tool === 'Bash') {
+        const cmd = String(input['command'] ?? '');
+        if (cmd) result.push({ tool, command: normalizeBashCommand(cmd) });
+      } else if (['Read', 'Edit', 'Write', 'Glob'].includes(tool)) {
+        const fp = String(input['file_path'] ?? input['pattern'] ?? '');
+        if (fp) result.push({ tool, filePath: fp });
+      }
+    }
+    return result;
   }
 
   // ── Extraction ─────────────────────────────────────────────────────────────
@@ -296,6 +351,56 @@ export class ConversationAnalyzer {
     }
 
     return { repeatedPhrases, corrections, workflows };
+  }
+
+  // ── Tool call analysis ─────────────────────────────────────────────────────
+
+  private analyzeToolCalls(toolCalls: ToolCallEntry[]): DetectedPattern[] {
+    const patterns: DetectedPattern[] = [];
+
+    // Repeated Bash commands
+    const bashCounts = new Map<string, number>();
+    for (const tc of toolCalls) {
+      if (tc.tool === 'Bash' && tc.command) {
+        bashCounts.set(tc.command, (bashCounts.get(tc.command) ?? 0) + 1);
+      }
+    }
+    for (const [command, count] of bashCounts) {
+      if (count < 5) continue;
+      patterns.push({
+        id: `bash-${command.replace(/\s+/g, '-')}`,
+        type: 'repetitive-workflow',
+        frequency: count,
+        examples: [`\`${command}\` exécuté ${count} fois`],
+        confidence: Math.min(count / 15, 1),
+        metadata: { source: 'tool-calls', tool: 'Bash', command },
+      });
+    }
+
+    // Frequently edited files
+    const fileCounts = new Map<string, number>();
+    for (const tc of toolCalls) {
+      if ((tc.tool === 'Edit' || tc.tool === 'Write') && tc.filePath) {
+        fileCounts.set(tc.filePath, (fileCounts.get(tc.filePath) ?? 0) + 1);
+      }
+    }
+    const hotFiles = [...fileCounts.entries()]
+      .filter(([, count]) => count >= 4)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    if (hotFiles.length > 0) {
+      patterns.push({
+        id: 'tool-hot-files',
+        type: 'repetitive-workflow',
+        frequency: hotFiles.reduce((s, [, c]) => s + c, 0),
+        examples: hotFiles.map(([f, c]) => `${f} (édité ${c}x)`),
+        confidence: 0.7,
+        metadata: { source: 'tool-calls', hotFiles: hotFiles.map(([p, count]) => ({ path: p, count })) },
+      });
+    }
+
+    return patterns;
   }
 
   // ── Pattern building ───────────────────────────────────────────────────────

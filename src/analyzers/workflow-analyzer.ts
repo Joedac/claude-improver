@@ -47,19 +47,31 @@ export class WorkflowAnalyzer {
     const frequentPaths: GitAnalysis['frequentPaths'] = [];
     const commonMessages: GitAnalysis['commonMessages'] = [];
     const recentActivity: string[] = [];
+    const allMessages: string[] = [];
+    const commitTypeCounts = new Map<string, number>();
     let commitsAnalyzed = 0;
 
     const isGit = await directoryExists(path.join(this.projectRoot, '.git'));
     if (!isGit) {
-      return { frequentPaths, commonMessages, recentActivity, commitsAnalyzed };
+      return { frequentPaths, commonMessages, recentActivity, allMessages, commitTypeCounts, commitsAnalyzed };
     }
 
     try {
-      const log: LogResult = await this.git.log({ maxCount: 200 });
+      const log: LogResult = await this.git.log({ maxCount: 50 });
       commitsAnalyzed = log.all.length;
 
       const messages = log.all.map((c) => c.message);
       recentActivity.push(...messages.slice(0, 10));
+      allMessages.push(...messages);
+
+      // Conventional commit type counts
+      for (const msg of messages) {
+        const match = msg.match(/^(feat|fix|refactor|chore|docs|test|style|perf)(\(.+?\))?:/i);
+        if (match) {
+          const type = match[1].toLowerCase();
+          commitTypeCounts.set(type, (commitTypeCounts.get(type) ?? 0) + 1);
+        }
+      }
 
       // Find repeated commit message patterns
       const phrases = extractRepeatedPhrases(messages, 2, 3);
@@ -69,7 +81,7 @@ export class WorkflowAnalyzer {
 
       // Find frequently modified files
       const fileCounts = new Map<string, number>();
-      for (const commit of log.all.slice(0, 50)) {
+      for (const commit of log.all) {
         try {
           const diff = await this.git.show(['--name-only', '--format=', commit.hash]);
           const files = diff.split('\n').filter((f) => f.trim() && !f.startsWith('diff'));
@@ -89,7 +101,7 @@ export class WorkflowAnalyzer {
       // git not available or not a repo
     }
 
-    return { frequentPaths, commonMessages, recentActivity, commitsAnalyzed };
+    return { frequentPaths, commonMessages, recentActivity, allMessages, commitTypeCounts, commitsAnalyzed };
   }
 
   private async analyzePRs(): Promise<{ patterns: string[]; count: number }> {
@@ -125,11 +137,11 @@ export class WorkflowAnalyzer {
   ): DetectedPattern[] {
     const detectedPatterns: DetectedPattern[] = [];
 
-    // Detect workflow patterns from commit messages
+    // Detect workflow patterns from all commit messages (not just recent 10)
     const workflowCounts = new Map<string, { count: number; examples: string[] }>();
 
     for (const { pattern, label } of WORKFLOW_KEYWORDS) {
-      const matches = gitAnalysis.recentActivity.filter((m) => pattern.test(m));
+      const matches = gitAnalysis.allMessages.filter((m) => pattern.test(m));
       if (matches.length >= 2) {
         const existing = workflowCounts.get(label);
         if (existing) {
@@ -160,6 +172,19 @@ export class WorkflowAnalyzer {
         examples: data.examples.slice(0, 3),
         confidence: Math.min(data.count / 6, 1),
         metadata: { label, workflowType: label },
+      });
+    }
+
+    // Conventional commit types recurring → suggest workflow skills
+    for (const [type, count] of gitAnalysis.commitTypeCounts) {
+      if (count < 5) continue;
+      detectedPatterns.push({
+        id: `commit-type-${type}`,
+        type: 'repetitive-workflow',
+        frequency: count,
+        examples: [`${count} "${type}:" commits in the last ${gitAnalysis.allMessages.length} commits`],
+        confidence: Math.min(count / 10, 1),
+        metadata: { commitType: type },
       });
     }
 

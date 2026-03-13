@@ -79,6 +79,11 @@ const TOOLS: Tool[] = [
           items: { type: 'string' },
           description: 'List of improvement IDs to apply. Use ["all"] to apply everything.',
         },
+        rejected_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'IDs of improvements the user explicitly rejected. They will not be proposed again in future runs.',
+        },
         project_root: {
           type: 'string',
           description: 'Absolute path to the project root.',
@@ -115,6 +120,7 @@ const PreviewSchema = z.object({
 
 const ApplySchema = z.object({
   improvement_ids: z.array(z.string()).min(1),
+  rejected_ids: z.array(z.string()).optional(),
   project_root: z.string().optional(),
 });
 
@@ -233,7 +239,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'improve_yourself_apply': {
-        const { improvement_ids, project_root } = ApplySchema.parse(args ?? {});
+        const { improvement_ids, rejected_ids, project_root } = ApplySchema.parse(args ?? {});
         const projectRoot = project_root ?? process.cwd();
 
         const cached = getCached(projectRoot);
@@ -257,10 +263,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const result = await applyImprovements(toApply, projectRoot, false);
         const summary = renderSummaryReport(result, false);
 
-        // Persist history
+        // Persist history and rejections
+        const store = new ImprovementHistoryStore(projectRoot);
         if (result.applied.length > 0) {
-          const store = new ImprovementHistoryStore(projectRoot);
           await store.record(result.applied);
+        }
+        if (rejected_ids && rejected_ids.length > 0) {
+          const rejectedImprovements = cached.improvements.filter((i) => rejected_ids.includes(i.id));
+          if (rejectedImprovements.length > 0) {
+            await store.recordRejections(rejectedImprovements);
+          }
         }
 
         return { content: [{ type: 'text', text: summary }] };

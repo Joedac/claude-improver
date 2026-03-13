@@ -42,9 +42,17 @@ export interface AppliedImprovement {
   outputPath: string;
 }
 
+export interface RejectedImprovement {
+  id: string;
+  name: string;
+  type: ImprovementType;
+  rejectedAt: string;
+}
+
 export interface ImprovementHistory {
   version: string;
   improvements: AppliedImprovement[];
+  rejections: RejectedImprovement[];
 }
 
 export interface ImproveYourselfOptions {
@@ -70,6 +78,8 @@ export interface GitAnalysis {
   frequentPaths: Array<{ path: string; changeCount: number }>;
   commonMessages: Array<{ pattern: string; count: number }>;
   recentActivity: string[];
+  allMessages: string[];
+  commitTypeCounts: Map<string, number>;
 }
 
 export interface ErrorAnalysis {

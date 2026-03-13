@@ -1,5 +1,5 @@
 import path from 'path';
-import { AppliedImprovement, ImprovementHistory, Improvement } from '../types/index.js';
+import { AppliedImprovement, ImprovementHistory, Improvement, RejectedImprovement } from '../types/index.js';
 import { readJsonFile, writeJsonFile } from '../utils/file-utils.js';
 
 const HISTORY_VERSION = '1.0.0';
@@ -13,7 +13,9 @@ export class ImprovementHistoryStore {
 
   async load(): Promise<ImprovementHistory> {
     const data = await readJsonFile<ImprovementHistory>(this.historyPath);
-    return data ?? { version: HISTORY_VERSION, improvements: [] };
+    if (!data) return { version: HISTORY_VERSION, improvements: [], rejections: [] };
+    if (!data.rejections) data.rejections = [];
+    return data;
   }
 
   async record(improvements: Improvement[]): Promise<void> {
@@ -35,6 +37,29 @@ export class ImprovementHistoryStore {
     }
 
     await writeJsonFile(this.historyPath, history);
+  }
+
+  async recordRejections(improvements: Improvement[]): Promise<void> {
+    const history = await this.load();
+    const now = new Date().toISOString();
+
+    for (const imp of improvements) {
+      const idx = history.rejections.findIndex((r) => r.id === imp.id);
+      if (idx !== -1) history.rejections.splice(idx, 1);
+      history.rejections.push({ id: imp.id, name: imp.name, type: imp.type, rejectedAt: now });
+    }
+
+    await writeJsonFile(this.historyPath, history);
+  }
+
+  async wasRejected(id: string): Promise<boolean> {
+    const history = await this.load();
+    return history.rejections.some((r) => r.id === id);
+  }
+
+  async getRejectedIds(): Promise<Set<string>> {
+    const history = await this.load();
+    return new Set(history.rejections.map((r) => r.id));
   }
 
   async getApplied(): Promise<AppliedImprovement[]> {

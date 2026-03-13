@@ -71,6 +71,9 @@ export async function runImproveYourself(opts: ImproveYourselfOptions): Promise<
 
   // Deduplicate by id, sort by score desc
   const seen = new Set<string>();
+  const store = new ImprovementHistoryStore(projectRoot);
+  const rejectedIds = await store.getRejectedIds();
+
   const improvements: Improvement[] = rawImprovements
     .filter((i): i is Improvement => i !== null)
     .filter((i) => {
@@ -78,6 +81,7 @@ export async function runImproveYourself(opts: ImproveYourselfOptions): Promise<
       seen.add(i.id);
       return true;
     })
+    .filter((i) => !rejectedIds.has(i.id))
     .sort((a, b) => b.score - a.score);
 
   const analysis: AnalysisResult = { patterns: allPatterns, improvements, stats };
