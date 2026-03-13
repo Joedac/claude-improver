@@ -1,54 +1,59 @@
 ---
-description: Analyze past interactions and propose actionable improvements (skills, commands, prompts, CLAUDE.md). Supports --dry-run and --auto modes.
+description: Analyze past interactions and propose actionable improvements (skills, commands, CLAUDE.md). Supports --dry-run and --auto modes.
 ---
 
 You are running the `/improve-yourself` command from the **claude-improver** plugin.
 
-## Your task
-
 **IMPORTANT: Always call `improve_yourself_analyze` fresh — never reuse previous results from the conversation context.**
 
-Analyze this project's history and propose improvements by calling the MCP tools provided by the `claude-improver` server in this exact sequence:
+## Step 1 – Analyze
 
-### Step 1 – Analyze
+Call `improve_yourself_analyze` with `project_root` set to the current project's absolute path.
 
-Call `improve_yourself_analyze` with:
-- `project_root`: the absolute path of the current project (use `$CWD`)
-- `dry_run`: $ARGUMENTS contains "--dry-run" → true, otherwise false
+## Step 2 – Generate improvements
 
-### Step 2 – Present results
+Based on the patterns returned, generate project-specific improvements. For each relevant pattern:
 
-Display the full analysis report returned by the tool, including:
-- The statistics block
-- The improvements table
-- The list of improvement IDs
+- **skill** → create `.claude/skills/<name>/SKILL.md` with a SKILL frontmatter and detailed instructions tailored to this project
+- **command** → create `.claude/commands/<name>.md` with step-by-step instructions for Claude to follow
+- **claude-md** → append rules to `CLAUDE.md` reflecting conventions observed in the patterns
+- **prompt** → create `.claude/prompts/<name>.md` for reusable prompt templates
 
-### Step 3 – Preview (optional)
+**Generation rules:**
+- Be specific to THIS project — use actual file names, frameworks, conventions observed in the patterns
+- Do not use generic boilerplate — every line should reflect something real detected in the project
+- For `bash-*` patterns: create a command or skill that automates that exact workflow
+- For `tool-hot-files` patterns: create a CLAUDE.md checklist of those files
+- For `commit-type-*` patterns: create a commit convention rule in CLAUDE.md
+- For `workflow-*` patterns: create a command that encodes the full workflow
+- For `repeated-prompt` patterns: create a skill that handles that exact request type
 
-If the user asks to preview a specific improvement before applying, call `improve_yourself_preview` with its ID.
+## Step 3 – Present to user
 
-### Step 4 – Confirm and apply
+Show a table of what you're about to create:
 
-Unless `--dry-run` was passed:
+| # | Name | Type | Path | Reason |
+|---|------|------|------|--------|
 
-1. Ask the user: *"Which improvements would you like to apply? Reply with the IDs (e.g. `skill-generate-tests,command-generate-tests`), `all`, or `none`."*
-2. Wait for the user's reply.
-3. Call `improve_yourself_apply` with the chosen IDs and the project root.
-4. Show the summary report.
+Then ask: *"Apply all, select specific ones (give numbers), or none?"*
 
-### Modes
+## Step 4 – Apply
 
-| Flag | Behavior |
-|------|----------|
-| *(none)* | Analyze + ask which to apply |
-| `--dry-run` | Analyze only, no file modifications |
-| `--auto` | Analyze + apply all (still confirm once before writing) |
+If `--dry-run` was passed: stop here, do not apply.
 
-### Rules
+Otherwise, once the user confirms:
 
-- **CRITICAL: You MUST call `improve_yourself_analyze` first.** Do NOT perform your own analysis using Bash, Glob, Grep, or Read tools. The MCP server does the analysis — your only job is to call the tools and present the results.
+1. Call `improve_yourself_apply` with:
+   - `improvements`: array of `{ id, name, type, outputPath, content }` for approved items
+   - `rejected_ids`: pattern IDs the user explicitly rejected
+   - `project_root`: absolute path
+
+2. Show the result.
+
+## Rules
+
+- **CRITICAL**: You MUST call `improve_yourself_analyze` first. Do NOT do your own git/file analysis.
 - **Never write files yourself** — always delegate to `improve_yourself_apply`.
 - **Always confirm** before applying, even in `--auto` mode.
-- Show the full improvements table before asking for confirmation.
-- If no patterns are detected, say so clearly and suggest how to generate more history.
 - If the MCP tool call fails, report the error — do not fall back to manual analysis.
+- Use the pattern `id` as the base for the improvement `id` (e.g. pattern `bash-npm-test` → improvement id `skill-npm-test`).

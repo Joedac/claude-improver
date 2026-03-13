@@ -3223,8 +3223,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path9) {
-      let input = path9;
+    function removeDotSegments(path8) {
+      let input = path8;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3423,8 +3423,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path9, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path9 && path9 !== "/" ? path9 : void 0;
+        const [path8, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path8 && path8 !== "/" ? path8 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -7458,10 +7458,10 @@ var require_src2 = __commonJS({
     var fs_1 = require("fs");
     var debug_1 = __importDefault(require_src());
     var log = debug_1.default("@kwsites/file-exists");
-    function check2(path9, isFile, isDirectory) {
-      log(`checking %s`, path9);
+    function check2(path8, isFile, isDirectory) {
+      log(`checking %s`, path8);
       try {
-        const stat = fs_1.statSync(path9);
+        const stat = fs_1.statSync(path8);
         if (stat.isFile() && isFile) {
           log(`[OK] path represents a file`);
           return true;
@@ -7481,8 +7481,8 @@ var require_src2 = __commonJS({
         throw e;
       }
     }
-    function exists2(path9, type = exports2.READABLE) {
-      return check2(path9, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
+    function exists2(path8, type = exports2.READABLE) {
+      return check2(path8, (type & exports2.FILE) > 0, (type & exports2.FOLDER) > 0);
     }
     exports2.exists = exists2;
     exports2.FILE = 1;
@@ -8023,8 +8023,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path9, errorMaps, issueData } = params;
-  const fullPath = [...path9, ...issueData.path || []];
+  const { data, path: path8, errorMaps, issueData } = params;
+  const fullPath = [...path8, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -8140,11 +8140,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path9, key) {
+  constructor(parent, value, path8, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path9;
+    this._path = path8;
     this._key = key;
   }
   get path() {
@@ -11781,10 +11781,10 @@ function assignProp(target, prop, value) {
     configurable: true
   });
 }
-function getElementAtPath(obj, path9) {
-  if (!path9)
+function getElementAtPath(obj, path8) {
+  if (!path8)
     return obj;
-  return path9.reduce((acc, key) => acc?.[key], obj);
+  return path8.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -12104,11 +12104,11 @@ function aborted(x2, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path9, issues) {
+function prefixIssues(path8, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path9);
+    iss.path.unshift(path8);
     return iss;
   });
 }
@@ -18649,6 +18649,9 @@ var StdioServerTransport = class {
   }
 };
 
+// src/index.ts
+var import_path6 = __toESM(require("path"));
+
 // src/utils/file-utils.ts
 var import_promises2 = __toESM(require("fs/promises"));
 var import_path = __toESM(require("path"));
@@ -22164,12 +22167,12 @@ var PathBase = class {
   /**
    * Get the Path object referenced by the string path, resolved from this Path
    */
-  resolve(path9) {
-    if (!path9) {
+  resolve(path8) {
+    if (!path8) {
       return this;
     }
-    const rootPath = this.getRootString(path9);
-    const dir = path9.substring(rootPath.length);
+    const rootPath = this.getRootString(path8);
+    const dir = path8.substring(rootPath.length);
     const dirParts = dir.split(this.splitSep);
     const result = rootPath ? this.getRoot(rootPath).#resolveParts(dirParts) : this.#resolveParts(dirParts);
     return result;
@@ -22921,8 +22924,8 @@ var PathWin32 = class _PathWin32 extends PathBase {
   /**
    * @internal
    */
-  getRootString(path9) {
-    return import_node_path.win32.parse(path9).root;
+  getRootString(path8) {
+    return import_node_path.win32.parse(path8).root;
   }
   /**
    * @internal
@@ -22968,8 +22971,8 @@ var PathPosix = class _PathPosix extends PathBase {
   /**
    * @internal
    */
-  getRootString(path9) {
-    return path9.startsWith("/") ? "/" : "";
+  getRootString(path8) {
+    return path8.startsWith("/") ? "/" : "";
   }
   /**
    * @internal
@@ -23058,11 +23061,11 @@ var PathScurryBase = class {
   /**
    * Get the depth of a provided path, string, or the cwd
    */
-  depth(path9 = this.cwd) {
-    if (typeof path9 === "string") {
-      path9 = this.cwd.resolve(path9);
+  depth(path8 = this.cwd) {
+    if (typeof path8 === "string") {
+      path8 = this.cwd.resolve(path8);
     }
-    return path9.depth();
+    return path8.depth();
   }
   /**
    * Return the cache of child entries.  Exposed so subclasses can create
@@ -23549,9 +23552,9 @@ var PathScurryBase = class {
     process3();
     return results;
   }
-  chdir(path9 = this.cwd) {
+  chdir(path8 = this.cwd) {
     const oldCwd = this.cwd;
-    this.cwd = typeof path9 === "string" ? this.cwd.resolve(path9) : path9;
+    this.cwd = typeof path8 === "string" ? this.cwd.resolve(path8) : path8;
     this.cwd[setAsCwd](oldCwd);
   }
 };
@@ -23907,8 +23910,8 @@ var MatchRecord = class {
   }
   // match, absolute, ifdir
   entries() {
-    return [...this.store.entries()].map(([path9, n]) => [
-      path9,
+    return [...this.store.entries()].map(([path8, n]) => [
+      path8,
       !!(n & 2),
       !!(n & 1)
     ]);
@@ -24113,9 +24116,9 @@ var GlobUtil = class {
   signal;
   maxDepth;
   includeChildMatches;
-  constructor(patterns, path9, opts) {
+  constructor(patterns, path8, opts) {
     this.patterns = patterns;
-    this.path = path9;
+    this.path = path8;
     this.opts = opts;
     this.#sep = !opts.posix && opts.platform === "win32" ? "\\" : "/";
     this.includeChildMatches = opts.includeChildMatches !== false;
@@ -24134,11 +24137,11 @@ var GlobUtil = class {
       });
     }
   }
-  #ignored(path9) {
-    return this.seen.has(path9) || !!this.#ignore?.ignored?.(path9);
+  #ignored(path8) {
+    return this.seen.has(path8) || !!this.#ignore?.ignored?.(path8);
   }
-  #childrenIgnored(path9) {
-    return !!this.#ignore?.childrenIgnored?.(path9);
+  #childrenIgnored(path8) {
+    return !!this.#ignore?.childrenIgnored?.(path8);
   }
   // backpressure mechanism
   pause() {
@@ -24353,8 +24356,8 @@ var GlobUtil = class {
 };
 var GlobWalker = class extends GlobUtil {
   matches = /* @__PURE__ */ new Set();
-  constructor(patterns, path9, opts) {
-    super(patterns, path9, opts);
+  constructor(patterns, path8, opts) {
+    super(patterns, path8, opts);
   }
   matchEmit(e) {
     this.matches.add(e);
@@ -24391,8 +24394,8 @@ var GlobWalker = class extends GlobUtil {
 };
 var GlobStream = class extends GlobUtil {
   results;
-  constructor(patterns, path9, opts) {
-    super(patterns, path9, opts);
+  constructor(patterns, path8, opts) {
+    super(patterns, path8, opts);
     this.results = new Minipass({
       signal: this.signal,
       objectMode: true
@@ -24686,14 +24689,6 @@ var glob = Object.assign(glob_, {
 glob.glob = glob;
 
 // src/utils/file-utils.ts
-async function fileExists(filePath) {
-  try {
-    await import_promises2.default.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
 async function readJsonFile(filePath) {
   try {
     const content = await import_promises2.default.readFile(filePath, "utf-8");
@@ -24740,32 +24735,6 @@ async function listDirectory(dirPath) {
     return [];
   }
 }
-function diffStrings(original, updated) {
-  const origLines = original.split("\n");
-  const updLines = updated.split("\n");
-  const lines = [];
-  const maxLen = Math.max(origLines.length, updLines.length);
-  let hasChanges = false;
-  for (let i = 0; i < maxLen; i++) {
-    const orig = origLines[i];
-    const upd = updLines[i];
-    if (orig === void 0) {
-      lines.push(`+ ${upd}`);
-      hasChanges = true;
-    } else if (upd === void 0) {
-      lines.push(`- ${orig}`);
-      hasChanges = true;
-    } else if (orig !== upd) {
-      lines.push(`- ${orig}`);
-      lines.push(`+ ${upd}`);
-      hasChanges = true;
-    } else {
-      lines.push(`  ${orig}`);
-    }
-  }
-  if (!hasChanges) return "(no changes)";
-  return lines.join("\n");
-}
 
 // src/utils/pattern-detector.ts
 function extractRepeatedPhrases(texts, minCount = 2, ngramSize = 4) {
@@ -24797,16 +24766,6 @@ function clusterByPrefix(strings, prefixWords = 3) {
     }
   }
   return clusters;
-}
-function scoreImpact(frequency, confidence, baseScore = 50) {
-  const freqBonus = Math.min(frequency * 5, 30);
-  const confBonus = confidence * 20;
-  return Math.round(Math.min(baseScore + freqBonus + confBonus, 100));
-}
-function scoreToImpact(score) {
-  if (score >= 70) return "high";
-  if (score >= 45) return "medium";
-  return "low";
 }
 function deduplicateStrings(strings) {
   const seen = /* @__PURE__ */ new Set();
@@ -25424,8 +25383,8 @@ function pathspec(...paths) {
   cache.set(key, paths);
   return key;
 }
-function isPathSpec(path9) {
-  return path9 instanceof String && cache.has(path9);
+function isPathSpec(path8) {
+  return path8 instanceof String && cache.has(path8);
 }
 function toPaths(pathSpec) {
   return cache.get(pathSpec) || [];
@@ -25514,8 +25473,8 @@ function toLinesWithContent(input = "", trimmed2 = true, separator = "\n") {
 function forEachLineWithContent(input, callback) {
   return toLinesWithContent(input, true).map((line) => callback(line));
 }
-function folderExists(path9) {
-  return (0, import_file_exists.exists)(path9, import_file_exists.FOLDER);
+function folderExists(path8) {
+  return (0, import_file_exists.exists)(path8, import_file_exists.FOLDER);
 }
 function append(target, item) {
   if (Array.isArray(target)) {
@@ -25919,8 +25878,8 @@ function checkIsRepoRootTask() {
     commands,
     format: "utf-8",
     onError,
-    parser(path9) {
-      return /^\.(git)?$/.test(path9.trim());
+    parser(path8) {
+      return /^\.(git)?$/.test(path8.trim());
     }
   };
 }
@@ -26354,11 +26313,11 @@ function parseGrep(grep) {
   const paths = /* @__PURE__ */ new Set();
   const results = {};
   forEachLineWithContent(grep, (input) => {
-    const [path9, line, preview] = input.split(NULL);
-    paths.add(path9);
-    (results[path9] = results[path9] || []).push({
+    const [path8, line, preview] = input.split(NULL);
+    paths.add(path8);
+    (results[path8] = results[path8] || []).push({
       line: asNumber(line),
-      path: path9,
+      path: path8,
       preview
     });
   });
@@ -27123,14 +27082,14 @@ var init_hash_object = __esm({
     init_task();
   }
 });
-function parseInit(bare, path9, text) {
+function parseInit(bare, path8, text) {
   const response = String(text).trim();
   let result;
   if (result = initResponseRegex.exec(response)) {
-    return new InitSummary(bare, path9, false, result[1]);
+    return new InitSummary(bare, path8, false, result[1]);
   }
   if (result = reInitResponseRegex.exec(response)) {
-    return new InitSummary(bare, path9, true, result[1]);
+    return new InitSummary(bare, path8, true, result[1]);
   }
   let gitDir = "";
   const tokens = response.split(" ");
@@ -27141,7 +27100,7 @@ function parseInit(bare, path9, text) {
       break;
     }
   }
-  return new InitSummary(bare, path9, /^re/i.test(response), gitDir);
+  return new InitSummary(bare, path8, /^re/i.test(response), gitDir);
 }
 var InitSummary;
 var initResponseRegex;
@@ -27150,9 +27109,9 @@ var init_InitSummary = __esm({
   "src/lib/responses/InitSummary.ts"() {
     "use strict";
     InitSummary = class {
-      constructor(bare, path9, existing, gitDir) {
+      constructor(bare, path8, existing, gitDir) {
         this.bare = bare;
-        this.path = path9;
+        this.path = path8;
         this.existing = existing;
         this.gitDir = gitDir;
       }
@@ -27164,7 +27123,7 @@ var init_InitSummary = __esm({
 function hasBareCommand(command) {
   return command.includes(bareCommand);
 }
-function initTask(bare = false, path9, customArgs) {
+function initTask(bare = false, path8, customArgs) {
   const commands = ["init", ...customArgs];
   if (bare && !hasBareCommand(commands)) {
     commands.splice(1, 0, bareCommand);
@@ -27173,7 +27132,7 @@ function initTask(bare = false, path9, customArgs) {
     commands,
     format: "utf-8",
     parser(text) {
-      return parseInit(commands.includes("--bare"), path9, text);
+      return parseInit(commands.includes("--bare"), path8, text);
     }
   };
 }
@@ -27989,12 +27948,12 @@ var init_FileStatusSummary = __esm({
     "use strict";
     fromPathRegex = /^(.+)\0(.+)$/;
     FileStatusSummary = class {
-      constructor(path9, index, working_dir) {
-        this.path = path9;
+      constructor(path8, index, working_dir) {
+        this.path = path8;
         this.index = index;
         this.working_dir = working_dir;
         if (index === "R" || working_dir === "R") {
-          const detail = fromPathRegex.exec(path9) || [null, path9, path9];
+          const detail = fromPathRegex.exec(path8) || [null, path8, path8];
           this.from = detail[2] || "";
           this.path = detail[1] || "";
         }
@@ -28025,14 +27984,14 @@ function splitLine(result, lineStr) {
     default:
       return;
   }
-  function data(index, workingDir, path9) {
+  function data(index, workingDir, path8) {
     const raw = `${index}${workingDir}`;
     const handler = parsers6.get(raw);
     if (handler) {
-      handler(result, path9);
+      handler(result, path8);
     }
     if (raw !== "##" && raw !== "!!") {
-      result.files.push(new FileStatusSummary(path9, index, workingDir));
+      result.files.push(new FileStatusSummary(path8, index, workingDir));
     }
   }
 }
@@ -28384,9 +28343,9 @@ var init_simple_git_api = __esm({
           next
         );
       }
-      hashObject(path9, write) {
+      hashObject(path8, write) {
         return this._runTask(
-          hashObjectTask(path9, write === true),
+          hashObjectTask(path8, write === true),
           trailingFunctionArgument(arguments)
         );
       }
@@ -28740,8 +28699,8 @@ var init_branch = __esm({
   }
 });
 function toPath(input) {
-  const path9 = input.trim().replace(/^["']|["']$/g, "");
-  return path9 && (0, import_node_path2.normalize)(path9);
+  const path8 = input.trim().replace(/^["']|["']$/g, "");
+  return path8 && (0, import_node_path2.normalize)(path8);
 }
 var parseCheckIgnore;
 var init_CheckIgnore = __esm({
@@ -29026,8 +28985,8 @@ __export2(sub_module_exports, {
   subModuleTask: () => subModuleTask,
   updateSubModuleTask: () => updateSubModuleTask
 });
-function addSubModuleTask(repo, path9) {
-  return subModuleTask(["add", repo, path9]);
+function addSubModuleTask(repo, path8) {
+  return subModuleTask(["add", repo, path8]);
 }
 function initSubModuleTask(customArgs) {
   return subModuleTask(["init", ...customArgs]);
@@ -29341,8 +29300,8 @@ var require_git = __commonJS2({
       }
       return this._runTask(straightThroughStringTask2(command, this._trimmed), next);
     };
-    Git2.prototype.submoduleAdd = function(repo, path9, then) {
-      return this._runTask(addSubModuleTask2(repo, path9), trailingFunctionArgument2(arguments));
+    Git2.prototype.submoduleAdd = function(repo, path8, then) {
+      return this._runTask(addSubModuleTask2(repo, path8), trailingFunctionArgument2(arguments));
     };
     Git2.prototype.submoduleUpdate = function(args, then) {
       return this._runTask(
@@ -30117,572 +30076,13 @@ var WorkflowAnalyzer = class {
   }
 };
 
-// src/generators/skill-generator.ts
-var SKILL_TEMPLATES = {
-  "generate-tests": {
-    name: "generate-tests",
-    description: "Generate comprehensive tests for the current file or function",
-    trigger: "generate tests, write tests, add tests",
-    instructions: `When asked to generate tests:
-1. Analyze the target code thoroughly
-2. Identify all public functions, methods, and edge cases
-3. Write tests covering:
-   - Happy path scenarios
-   - Edge cases and boundary conditions
-   - Error cases and exceptions
-   - Integration points
-4. Use the project's existing test framework and conventions
-5. Ensure tests are deterministic and isolated
-6. Add descriptive test names that explain what is being tested`
-  },
-  "generate-docs": {
-    name: "generate-docs",
-    description: "Generate JSDoc/TSDoc documentation for code",
-    trigger: "generate docs, write documentation, add docs",
-    instructions: `When asked to generate documentation:
-1. Analyze all exported functions, classes, and types
-2. Write clear, concise JSDoc/TSDoc comments including:
-   - @description for complex logic
-   - @param for each parameter with type and description
-   - @returns describing what is returned
-   - @throws for documented exceptions
-   - @example with practical usage examples
-3. Follow the project's existing documentation style
-4. Avoid stating the obvious - focus on non-trivial behavior`
-  },
-  "generate-api-docs": {
-    name: "generate-api-docs",
-    description: "Generate API documentation in OpenAPI/Markdown format",
-    trigger: "api docs, api documentation, document endpoints",
-    instructions: `When asked to document APIs:
-1. Identify all HTTP endpoints, their methods, paths, and handlers
-2. Document each endpoint with:
-   - Method and path
-   - Description of what it does
-   - Request body schema (if applicable)
-   - Query parameters
-   - Response schemas for success and error cases
-   - Authentication requirements
-3. Use OpenAPI 3.0 format if a spec file exists, otherwise use Markdown
-4. Include realistic example requests and responses`
-  },
-  "refactor-code": {
-    name: "refactor-code",
-    description: "Refactor code for clarity, performance, and maintainability",
-    trigger: "refactor, clean up code, improve code quality",
-    instructions: `When asked to refactor code:
-1. Identify code smells: duplication, long functions, deep nesting, magic numbers
-2. Extract reusable functions and constants
-3. Improve naming for clarity
-4. Reduce cyclomatic complexity
-5. Apply SOLID principles where appropriate
-6. Preserve all existing functionality (verify with tests)
-7. Document non-obvious design decisions
-8. Keep changes minimal \u2014 refactor one concern at a time`
-  },
-  "add-types": {
-    name: "add-types",
-    description: "Add TypeScript type annotations to untyped or loosely-typed code",
-    trigger: "add types, add TypeScript types, fix types",
-    instructions: `When adding TypeScript types:
-1. Infer types from usage and context before making them explicit
-2. Prefer specific types over \`any\` or \`unknown\`
-3. Create interfaces/types for complex object shapes
-4. Add return types to all exported functions
-5. Use generics where appropriate to maintain flexibility
-6. Enable strict mode checks if not already enabled
-7. Fix resulting type errors without widening types unnecessarily`
-  },
-  "code-review": {
-    name: "code-review",
-    description: "Perform a thorough code review with actionable feedback",
-    trigger: "code review, review this, review PR",
-    instructions: `When reviewing code:
-1. Check for correctness: logic errors, edge cases, off-by-one errors
-2. Security: input validation, SQL injection, XSS, auth issues
-3. Performance: unnecessary loops, N+1 queries, memory leaks
-4. Maintainability: clarity, naming, duplication
-5. Test coverage: are edge cases tested?
-6. TypeScript: proper typing, no unsafe casts
-7. Format feedback as:
-   - \u{1F534} MUST FIX: blocking issues
-   - \u{1F7E1} SHOULD FIX: important improvements
-   - \u{1F7E2} CONSIDER: optional suggestions`
-  },
-  "fix-lint": {
-    name: "fix-lint",
-    description: "Fix all ESLint/Prettier issues in the codebase",
-    trigger: "fix lint, fix linting, eslint errors",
-    instructions: `When fixing lint issues:
-1. Run the linter to get a full list of errors and warnings
-2. Fix errors first (blocking issues), then warnings
-3. For auto-fixable issues, run \`eslint --fix\` / \`prettier --write\`
-4. For manual fixes, address each issue without changing logic
-5. Do not disable lint rules unless absolutely necessary
-6. If a rule seems wrong for the codebase, discuss before disabling`
-  }
-};
-var SkillGenerator = class {
-  generateFromPattern(pattern) {
-    const template = this.selectTemplate(pattern);
-    if (!template) return null;
-    const score = scoreImpact(pattern.frequency, pattern.confidence);
-    const outputPath = `.claude/skills/${template.name}.md`;
-    return {
-      id: `skill-${template.name}`,
-      type: "skill",
-      name: template.name,
-      reason: this.buildReason(pattern),
-      impact: scoreToImpact(score),
-      score,
-      pattern,
-      outputPath,
-      generatedContent: this.renderSkill(template, pattern)
-    };
-  }
-  selectTemplate(pattern) {
-    const searchText = [
-      ...pattern.examples ?? [],
-      JSON.stringify(pattern.metadata ?? {})
-    ].join(" ").toLowerCase();
-    for (const [key, template] of Object.entries(SKILL_TEMPLATES)) {
-      const keywords = key.split("-").concat(template.trigger.split(/[,\s]+/));
-      if (keywords.some((kw) => searchText.includes(kw.toLowerCase()))) {
-        return template;
-      }
-    }
-    if (pattern.type === "repeated-prompt") {
-      const phrase = pattern.metadata?.["phrase"] ?? pattern.examples[0] ?? "task";
-      const name = phrase.replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 30);
-      return {
-        name,
-        description: `Handle the repeated request: "${phrase}"`,
-        trigger: phrase,
-        instructions: `When asked to "${phrase}":
-1. Understand the full scope of the request
-2. Break it into clear, actionable steps
-3. Execute each step systematically
-4. Verify results before presenting them
-5. Summarize what was done`
-      };
-    }
-    return null;
-  }
-  buildReason(pattern) {
-    switch (pattern.type) {
-      case "repeated-prompt":
-        return `Prompt repeated ${pattern.frequency} times \u2014 automate with a skill`;
-      case "repetitive-workflow":
-        return `Workflow detected ${pattern.frequency} times \u2014 create reusable skill`;
-      case "user-correction":
-        return `${pattern.frequency} corrections recorded \u2014 improve default behavior`;
-      default:
-        return `Pattern detected ${pattern.frequency} times`;
-    }
-  }
-  renderSkill(template, pattern) {
-    const examples = pattern.examples.slice(0, 3).map((e) => `- "${e}"`).join("\n");
-    return `---
-name: ${template.name}
-description: ${template.description}
-trigger: ${template.trigger}
-version: 1.0.0
-auto-generated: true
-generated-at: ${(/* @__PURE__ */ new Date()).toISOString()}
----
-
-# ${template.name}
-
-${template.description}
-
-## When to use
-
-This skill is triggered when the user asks to: **${template.trigger}**
-
-**Detected examples from your history:**
-${examples || "- (no examples recorded yet)"}
-
-## Instructions
-
-${template.instructions}
-
-## Notes
-
-- Auto-generated by claude-improver based on ${pattern.frequency} detected occurrences
-- Review and customize these instructions to match your project's conventions
-- Confidence score: ${Math.round(pattern.confidence * 100)}%
-`;
-  }
-};
-
-// src/generators/command-generator.ts
-var COMMAND_TEMPLATES = {
-  "generate-tests": {
-    name: "generate-tests",
-    description: "Generate comprehensive tests for the target file",
-    skillRef: "generate-tests",
-    args: "[file-path]",
-    steps: [
-      "Read and analyze the target file thoroughly",
-      "Identify all public API surface (functions, classes, methods)",
-      "Create a test file with the appropriate naming convention",
-      "Write unit tests covering happy paths, edge cases, and error cases",
-      "Run the tests to verify they pass",
-      "Report coverage summary"
-    ]
-  },
-  "generate-docs": {
-    name: "generate-docs",
-    description: "Generate JSDoc/TSDoc documentation for the codebase",
-    skillRef: "generate-docs",
-    steps: [
-      "Scan all source files for undocumented exports",
-      "Generate JSDoc comments for each exported symbol",
-      "Preserve existing documentation",
-      "Run linting to verify doc format",
-      "Report files updated"
-    ]
-  },
-  "refactor": {
-    name: "refactor",
-    description: "Refactor the specified file or module",
-    skillRef: "refactor-code",
-    args: "[file-path] [--focus=<concern>]",
-    steps: [
-      "Read the target file and identify code smells",
-      "Plan the refactoring changes (no logic changes)",
-      "Apply changes incrementally",
-      "Run tests after each step",
-      "Summarize all changes made"
-    ]
-  },
-  "code-review": {
-    name: "code-review",
-    description: "Perform a code review of staged changes or a specified file",
-    skillRef: "code-review",
-    args: "[file-path|--staged]",
-    steps: [
-      "Get the diff (staged changes or specified file)",
-      "Review for correctness, security, and performance",
-      "Format feedback by severity: MUST FIX / SHOULD FIX / CONSIDER",
-      "Provide specific line references and suggested fixes"
-    ]
-  },
-  "add-types": {
-    name: "add-types",
-    description: "Add TypeScript type annotations to the specified file",
-    skillRef: "add-types",
-    args: "[file-path]",
-    steps: [
-      "Read the target file",
-      "Infer types from usage context",
-      "Add type annotations to function signatures and variables",
-      "Run tsc --noEmit to verify no errors introduced",
-      "Report summary of types added"
-    ]
-  }
-};
-var CommandGenerator = class {
-  generateFromPattern(pattern) {
-    const template = this.selectTemplate(pattern);
-    if (!template) return null;
-    const score = scoreImpact(pattern.frequency, pattern.confidence, 60);
-    const outputPath = `.claude/commands/${template.name}.md`;
-    return {
-      id: `command-${template.name}`,
-      type: "command",
-      name: `/${template.name}`,
-      reason: this.buildReason(pattern, template),
-      impact: scoreToImpact(score),
-      score,
-      pattern,
-      outputPath,
-      generatedContent: this.renderCommand(template, pattern)
-    };
-  }
-  selectTemplate(pattern) {
-    if (pattern.type !== "repetitive-workflow" && pattern.type !== "repeated-prompt") {
-      return null;
-    }
-    if (pattern.id === "hot-files") return null;
-    const searchText = [
-      ...pattern.examples ?? [],
-      JSON.stringify(pattern.metadata ?? {})
-    ].join(" ").toLowerCase();
-    for (const [key, template] of Object.entries(COMMAND_TEMPLATES)) {
-      const keywords = key.split("-");
-      if (keywords.every((kw) => searchText.includes(kw))) {
-        return template;
-      }
-    }
-    if (pattern.frequency < 5) return null;
-    const phrase = pattern.metadata?.["label"] ?? pattern.metadata?.["phrase"] ?? pattern.examples[0] ?? "workflow";
-    const name = phrase.replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 30);
-    return {
-      name,
-      description: `Execute the "${phrase}" workflow`,
-      steps: [
-        `Understand the full scope of the "${phrase}" request`,
-        "Plan the steps needed",
-        "Execute each step",
-        "Verify results",
-        "Summarize what was done"
-      ]
-    };
-  }
-  buildReason(pattern, template) {
-    return `Workflow "${template.name}" repeated ${pattern.frequency} times \u2014 create /${template.name} command`;
-  }
-  renderCommand(template, pattern) {
-    const examples = pattern.examples.slice(0, 3).map((e) => `- "${e}"`).join("\n");
-    const stepsText = template.steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
-    return `---
-description: ${template.description}
-auto-generated: true
-generated-at: ${(/* @__PURE__ */ new Date()).toISOString()}
----
-
-# /${template.name}${template.args ? ` ${template.args}` : ""}
-
-${template.description}
-
-## Behavior
-
-${stepsText}
-
-## Detected usage patterns
-
-${examples || "- (no examples recorded)"}
-
-## Notes
-
-- Auto-generated by claude-improver (${pattern.frequency} occurrences detected)
-- Customize the steps above to match your project conventions
-${template.skillRef ? `- Pairs with skill: \`${template.skillRef}\`` : ""}
-`;
-  }
-};
-
-// src/generators/prompt-generator.ts
-var PromptGenerator = class {
-  generateFromPattern(pattern) {
-    if (pattern.type !== "repeated-prompt") return null;
-    if (pattern.frequency < 3) return null;
-    const phrase = pattern.metadata?.["phrase"] ?? pattern.examples[0] ?? "task";
-    const name = phrase.replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 40);
-    const score = scoreImpact(pattern.frequency, pattern.confidence, 40);
-    const outputPath = `.claude/prompts/${name}.md`;
-    return {
-      id: `prompt-${name}`,
-      type: "prompt",
-      name,
-      reason: `Prompt "${phrase}" used ${pattern.frequency} times \u2014 save as reusable template`,
-      impact: scoreToImpact(score),
-      score,
-      pattern,
-      outputPath,
-      generatedContent: this.renderPromptTemplate(name, phrase, pattern)
-    };
-  }
-  renderPromptTemplate(name, phrase, pattern) {
-    const examples = pattern.examples.slice(0, 5).map((e, i) => `### Example ${i + 1}
-
-> ${e}`).join("\n\n");
-    return `---
-name: ${name}
-description: Reusable prompt template for "${phrase}"
-version: 1.0.0
-auto-generated: true
-generated-at: ${(/* @__PURE__ */ new Date()).toISOString()}
-frequency: ${pattern.frequency}
----
-
-# Prompt Template: ${name}
-
-## Base prompt
-
-\`\`\`
-${phrase}
-\`\`\`
-
-## Enhanced version
-
-\`\`\`
-${this.enhancePrompt(phrase)}
-\`\`\`
-
-## Detected usage examples
-
-${examples || "_No examples recorded_"}
-
-## Variables
-
-You can customize this template with variables:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| \`{{target}}\` | The target file or module | \`src/api/users.ts\` |
-| \`{{framework}}\` | The project framework | \`Express\`, \`NestJS\` |
-| \`{{style}}\` | Code style preference | \`functional\`, \`OOP\` |
-
-## Usage
-
-Paste this template and fill in the variables, or use it as a starting point for your request.
-
----
-_Auto-generated by claude-improver \u2014 edit to match your exact needs_
-`;
-  }
-  enhancePrompt(base) {
-    const enhanced = base.trim();
-    return `${enhanced}
-
-Context:
-- Target: {{target}}
-- Follow project conventions
-- Use existing patterns and utilities where possible
-- Ensure all edge cases are handled
-- Add tests if applicable`;
-  }
-};
-
-// src/generators/claude-md-generator.ts
-var import_path5 = __toESM(require("path"));
-var ClaudeMdGenerator = class {
-  projectRoot;
-  constructor(projectRoot) {
-    this.projectRoot = projectRoot;
-  }
-  async generateFromPatterns(patterns) {
-    const rules = this.extractRules(patterns);
-    if (rules.length === 0) return null;
-    const existingContent = await readTextFile(import_path5.default.join(this.projectRoot, "CLAUDE.md")) ?? "";
-    const patch = this.buildPatch(rules, existingContent);
-    if (!patch.additions) return null;
-    const topScore = Math.max(...patterns.map((p) => Math.round(p.confidence * 80 + p.frequency * 2)));
-    const score = Math.min(topScore, 90);
-    return {
-      id: "claude-md-update",
-      type: "claude-md",
-      name: "CLAUDE.md",
-      reason: `${rules.length} new rules derived from detected patterns`,
-      impact: scoreToImpact(score),
-      score,
-      pattern: patterns[0],
-      // representative pattern
-      outputPath: "CLAUDE.md",
-      generatedContent: patch.newContent
-    };
-  }
-  extractRules(patterns) {
-    const rules = [];
-    for (const pattern of patterns) {
-      switch (pattern.type) {
-        case "code-error": {
-          const errors = pattern.metadata?.["errors"] ?? [];
-          if (errors.some((e) => e.snippet.includes("any"))) {
-            rules.push({
-              section: "TypeScript",
-              content: "- Never use `any` type \u2014 use `unknown`, generics, or explicit interfaces instead",
-              reason: "Repeated `any` usage detected in codebase"
-            });
-          }
-          if (errors.some((e) => e.snippet.includes("return type"))) {
-            rules.push({
-              section: "TypeScript",
-              content: "- Always add explicit return types to exported functions",
-              reason: "Missing return types detected"
-            });
-          }
-          if (errors.some((e) => e.snippet.includes("null"))) {
-            rules.push({
-              section: "TypeScript",
-              content: "- Always check for null/undefined before accessing nested properties",
-              reason: "Null-check errors detected"
-            });
-          }
-          break;
-        }
-        case "user-correction": {
-          const corrections = pattern.metadata?.["corrections"] ?? [];
-          for (const c of corrections.slice(0, 2)) {
-            if (c.correction.length < 150) {
-              rules.push({
-                section: "Code Style",
-                content: `- ${c.correction.replace(/\n/g, " ").slice(0, 120)}`,
-                reason: "User correction recorded"
-              });
-            }
-          }
-          break;
-        }
-        case "missing-rule": {
-          const modules = pattern.metadata?.["modules"] ?? [];
-          if (modules.length > 0) {
-            rules.push({
-              section: "Dependencies",
-              content: `- Prefer these established libraries: ${modules.slice(0, 5).map((m) => `\`${m.module}\``).join(", ")}`,
-              reason: "Frequently used modules detected"
-            });
-          }
-          break;
-        }
-        case "repetitive-workflow": {
-          const label = pattern.metadata?.["label"];
-          if (label) {
-            rules.push({
-              section: "Workflows",
-              content: `- Use the \`/${label}\` command for ${label.replace(/-/g, " ")} tasks`,
-              reason: `Workflow repeated ${pattern.frequency} times`
-            });
-          }
-          break;
-        }
-      }
-    }
-    return rules;
-  }
-  buildPatch(rules, existing) {
-    const sectionMap = /* @__PURE__ */ new Map();
-    for (const rule of rules) {
-      if (existing.toLowerCase().includes(rule.content.toLowerCase().slice(2, 40))) {
-        continue;
-      }
-      const section = sectionMap.get(rule.section) ?? [];
-      section.push(`${rule.content} <!-- ${rule.reason} -->`);
-      sectionMap.set(rule.section, section);
-    }
-    if (sectionMap.size === 0) {
-      return { additions: false, newContent: existing };
-    }
-    const newSections = [];
-    for (const [section, lines] of sectionMap) {
-      newSections.push(`
-## ${section} (auto-generated by claude-improver)
-
-${lines.join("\n")}`);
-    }
-    const addition = newSections.join("\n");
-    const newContent = existing ? `${existing.trimEnd()}
-
----
-${addition}
-` : `# Project Rules
-
-Auto-generated by claude-improver on ${(/* @__PURE__ */ new Date()).toISOString()}
-${addition}
-`;
-    return { additions: true, newContent };
-  }
-};
-
 // src/storage/improvement-history.ts
-var import_path6 = __toESM(require("path"));
+var import_path5 = __toESM(require("path"));
 var HISTORY_VERSION = "1.0.0";
 var ImprovementHistoryStore = class {
   historyPath;
   constructor(projectRoot) {
-    this.historyPath = import_path6.default.join(projectRoot, ".claude", "improvement-history.json");
+    this.historyPath = import_path5.default.join(projectRoot, ".claude", "improvement-history.json");
   }
   async load() {
     const data = await readJsonFile(this.historyPath);
@@ -30751,109 +30151,8 @@ var ImprovementHistoryStore = class {
   }
 };
 
-// src/approval/approval-manager.ts
-var import_path7 = __toESM(require("path"));
-function renderImprovementsTable(improvements) {
-  if (improvements.length === 0) return "No improvements to show.";
-  const cols = {
-    name: Math.max(20, ...improvements.map((i) => i.name.length)),
-    type: 12,
-    reason: Math.max(30, ...improvements.map((i) => i.reason.length)),
-    impact: 8,
-    score: 7
-  };
-  const sep2 = `  ${"\u2500".repeat(cols.name)}  ${"\u2500".repeat(cols.type)}  ${"\u2500".repeat(Math.min(cols.reason, 50))}  ${"\u2500".repeat(cols.impact)}  ${"\u2500".repeat(cols.score)}`;
-  const header = [
-    `  ${"Improvement".padEnd(cols.name)}  ${"Type".padEnd(cols.type)}  ${"Reason".padEnd(Math.min(cols.reason, 50))}  ${"Impact".padEnd(cols.impact)}  ${"Score".padEnd(cols.score)}`,
-    sep2
-  ];
-  const rows = improvements.map((imp, idx) => {
-    const reason = imp.reason.length > 50 ? imp.reason.slice(0, 47) + "..." : imp.reason;
-    return `${String(idx + 1).padStart(2)}. ${imp.name.padEnd(cols.name - 2)}  ${imp.type.padEnd(cols.type)}  ${reason.padEnd(Math.min(cols.reason, 50))}  ${imp.impact.padEnd(cols.impact)}  ${String(imp.score).padEnd(cols.score)}`;
-  });
-  return [...header, ...rows].join("\n");
-}
-async function renderDiff(improvement, projectRoot) {
-  const fullPath = import_path7.default.join(projectRoot, improvement.outputPath);
-  const existing = await fileExists(fullPath) ? await readTextFile(fullPath) ?? "" : "";
-  const diff = diffStrings(existing, improvement.generatedContent);
-  return [
-    `--- ${improvement.outputPath} (current)`,
-    `+++ ${improvement.outputPath} (proposed)`,
-    "",
-    diff
-  ].join("\n");
-}
-function renderConfirmationSummary(improvements) {
-  const lines = [
-    "You are about to create/update:",
-    "",
-    ...improvements.map((i) => `  ${i.outputPath}  (${i.type})`),
-    "",
-    'Proceed? Reply with the IDs to apply (e.g. "1,3") or "all" or "none".'
-  ];
-  return lines.join("\n");
-}
-async function applyImprovements(improvements, projectRoot, dryRun) {
-  const result = {
-    approved: improvements,
-    skipped: [],
-    applied: [],
-    errors: []
-  };
-  if (dryRun) {
-    result.skipped = improvements;
-    return result;
-  }
-  for (const imp of improvements) {
-    try {
-      const fullPath = import_path7.default.join(projectRoot, imp.outputPath);
-      await writeTextFile(fullPath, imp.generatedContent);
-      result.applied.push(imp);
-    } catch (err) {
-      result.errors.push({
-        improvement: imp,
-        error: err instanceof Error ? err.message : String(err)
-      });
-    }
-  }
-  return result;
-}
-function renderSummaryReport(result, dryRun) {
-  const lines = [];
-  if (dryRun) {
-    lines.push("DRY-RUN: No files were modified.");
-    lines.push("");
-    lines.push(`Suggested improvements (${result.approved.length}):`);
-    for (const imp of result.approved) {
-      lines.push(`  [${imp.type.padEnd(10)}] ${imp.outputPath}`);
-    }
-    return lines.join("\n");
-  }
-  lines.push(`Applied ${result.applied.length} improvement(s):`);
-  for (const imp of result.applied) {
-    lines.push(`  \u2713 ${imp.outputPath}  (${imp.type}, score: ${imp.score})`);
-  }
-  if (result.errors.length > 0) {
-    lines.push("");
-    lines.push(`Errors (${result.errors.length}):`);
-    for (const e of result.errors) {
-      lines.push(`  \u2717 ${e.improvement.outputPath}: ${e.error}`);
-    }
-  }
-  if (result.skipped.length > 0) {
-    lines.push("");
-    lines.push(`Skipped (${result.skipped.length}):`);
-    for (const imp of result.skipped) {
-      lines.push(`  - ${imp.name}`);
-    }
-  }
-  return lines.join("\n");
-}
-
 // src/commands/improve-yourself.ts
-async function runImproveYourself(opts) {
-  const projectRoot = opts.projectRoot ?? process.cwd();
+async function runAnalyze(projectRoot) {
   const [convResult, errResult, wfResult] = await Promise.all([
     new ConversationAnalyzer(projectRoot).analyze(),
     new ErrorDetector(projectRoot).analyze(),
@@ -30864,134 +30163,106 @@ async function runImproveYourself(opts) {
     ...errResult.patterns,
     ...wfResult.patterns
   ];
+  const store = new ImprovementHistoryStore(projectRoot);
+  const rejectedIds = await store.getRejectedIds();
+  const patterns = allPatterns.filter((p) => !rejectedIds.has(p.id));
   const stats = {
     conversationsAnalyzed: convResult.stats.conversationsAnalyzed,
     commitsAnalyzed: wfResult.stats.commitsAnalyzed,
-    patternsDetected: allPatterns.length,
+    patternsDetected: patterns.length,
     timestamp: (/* @__PURE__ */ new Date()).toISOString()
   };
-  const skillGen = new SkillGenerator();
-  const cmdGen = new CommandGenerator();
-  const promptGen = new PromptGenerator();
-  const claudeMdGen = new ClaudeMdGenerator(projectRoot);
-  const rawImprovements = [
-    ...allPatterns.flatMap((p) => [
-      skillGen.generateFromPattern(p),
-      cmdGen.generateFromPattern(p),
-      promptGen.generateFromPattern(p)
-    ]),
-    await claudeMdGen.generateFromPatterns(allPatterns)
-  ];
-  const seen = /* @__PURE__ */ new Set();
-  const store = new ImprovementHistoryStore(projectRoot);
-  const rejectedIds = await store.getRejectedIds();
-  const improvements = rawImprovements.filter((i) => i !== null).filter((i) => {
-    if (seen.has(i.id)) return false;
-    seen.add(i.id);
-    return true;
-  }).filter((i) => !rejectedIds.has(i.id)).sort((a3, b) => b.score - a3.score);
-  const analysis = { patterns: allPatterns, improvements, stats };
-  if (opts.selectedIds && opts.selectedIds.length > 0 && !opts.dryRun) {
-    const toApply = improvements.filter((i) => opts.selectedIds.includes(i.id));
-    const result = await applyImprovements(toApply, projectRoot, false);
-    if (result.applied.length > 0) {
-      const store2 = new ImprovementHistoryStore(projectRoot);
-      await store2.record(result.applied);
-    }
-    return {
-      analysis,
-      improvements,
-      table: renderImprovementsTable(improvements),
-      applied: renderSummaryReport(result, false)
-    };
-  }
-  const table = renderImprovementsTable(improvements);
-  const confirmationPrompt = improvements.length > 0 ? renderConfirmationSummary(improvements) : "No improvements detected.";
-  const diffs = {};
-  for (const imp of improvements) {
-    diffs[imp.id] = await renderDiff(imp, projectRoot);
-  }
-  return { analysis, improvements, table, confirmationPrompt, diffs };
+  const formattedOutput = formatPatternsForClaude(patterns, stats);
+  return { patterns, formattedOutput, stats };
 }
-function formatAnalysisReport(result) {
-  const { analysis, table, confirmationPrompt } = result;
-  const statsBlock = [
+function formatPatternsForClaude(patterns, stats) {
+  const lines = [
     "## Analysis Summary",
     "",
-    `  Conversations analyzed : ${analysis.stats.conversationsAnalyzed}`,
-    `  Commits analyzed       : ${analysis.stats.commitsAnalyzed}`,
-    `  Patterns detected      : ${analysis.stats.patternsDetected}`,
-    `  Improvements proposed  : ${analysis.improvements.length}`,
-    `  Timestamp              : ${analysis.stats.timestamp}`,
+    `  Conversations analyzed : ${stats.conversationsAnalyzed}`,
+    `  Commits analyzed       : ${stats.commitsAnalyzed}`,
+    `  Patterns detected      : ${stats.patternsDetected}`,
+    `  Timestamp              : ${stats.timestamp}`,
     ""
-  ].join("\n");
-  const tableBlock = ["## Suggested Improvements", "", table, ""].join("\n");
-  const patternsBlock = analysis.patterns.length > 0 ? [
-    "## Detected Patterns",
-    "",
-    ...analysis.patterns.map(
-      (p) => `  [${p.type.padEnd(22)}] freq=${String(p.frequency).padStart(3)}  conf=${Math.round(p.confidence * 100)}%  id=${p.id}`
-    ),
-    ""
-  ].join("\n") : "";
-  const confirmBlock = confirmationPrompt ? ["## Next Steps", "", confirmationPrompt, ""].join("\n") : "";
-  return [statsBlock, tableBlock, patternsBlock, confirmBlock].filter(Boolean).join("\n");
+  ];
+  if (patterns.length === 0) {
+    lines.push("No patterns detected. Use Claude more on this project to generate history.");
+    return lines.join("\n");
+  }
+  lines.push("## Detected Patterns");
+  lines.push("");
+  lines.push("> Use these patterns to generate project-specific skills, commands, and CLAUDE.md rules.");
+  lines.push("> Then call `improve_yourself_apply` with your generated improvements.");
+  lines.push("");
+  for (const p of patterns) {
+    lines.push(`---`);
+    lines.push(`**${p.id}** (${p.type})`);
+    lines.push(`- Frequency  : ${p.frequency} occurrences`);
+    lines.push(`- Confidence : ${Math.round(p.confidence * 100)}%`);
+    if (p.examples.length > 0) {
+      lines.push(`- Examples   :`);
+      for (const ex of p.examples.slice(0, 3)) {
+        lines.push(`    - ${ex}`);
+      }
+    }
+    if (p.metadata && Object.keys(p.metadata).length > 0) {
+      const meta = JSON.stringify(p.metadata, null, 0).slice(0, 200);
+      lines.push(`- Metadata   : ${meta}`);
+    }
+    lines.push("");
+  }
+  lines.push("---");
+  lines.push("");
+  lines.push("## Output paths");
+  lines.push("");
+  lines.push("- skill     \u2192 `.claude/skills/<name>/SKILL.md`");
+  lines.push("- command   \u2192 `.claude/commands/<name>.md`");
+  lines.push("- claude-md \u2192 `CLAUDE.md` (append)");
+  lines.push("- prompt    \u2192 `.claude/prompts/<name>.md`");
+  return lines.join("\n");
 }
 
 // src/index.ts
 var TOOLS = [
   {
     name: "improve_yourself_analyze",
-    description: "Analyze the project and conversation history to detect patterns and suggest improvements (skills, commands, prompts, CLAUDE.md updates). Use --dry-run to preview without applying.",
+    description: "Analyze the project git history and conversation sessions to detect recurring patterns. Returns raw patterns with context \u2014 YOU (Claude) generate the actual skill/command/CLAUDE.md content from these patterns.",
     inputSchema: {
       type: "object",
       properties: {
         project_root: {
           type: "string",
           description: "Absolute path to the project root. Defaults to cwd."
-        },
-        dry_run: {
-          type: "boolean",
-          description: "If true, only suggest improvements without applying them.",
-          default: true
-        }
-      }
-    }
-  },
-  {
-    name: "improve_yourself_preview",
-    description: "Preview the diff/content for a specific improvement before applying it.",
-    inputSchema: {
-      type: "object",
-      required: ["improvement_id"],
-      properties: {
-        improvement_id: {
-          type: "string",
-          description: "The ID of the improvement to preview (from analyze output)."
-        },
-        project_root: {
-          type: "string",
-          description: "Absolute path to the project root."
         }
       }
     }
   },
   {
     name: "improve_yourself_apply",
-    description: "Apply selected improvements to disk after user confirmation. Pass improvement IDs from the analyze step.",
+    description: "Write improvements to disk and record them in history. Pass the improvements you generated from the analyze output.",
     inputSchema: {
       type: "object",
-      required: ["improvement_ids"],
+      required: ["improvements"],
       properties: {
-        improvement_ids: {
+        improvements: {
           type: "array",
-          items: { type: "string" },
-          description: 'List of improvement IDs to apply. Use ["all"] to apply everything.'
+          description: "List of improvements to write to disk.",
+          items: {
+            type: "object",
+            required: ["id", "name", "type", "outputPath", "content"],
+            properties: {
+              id: { type: "string", description: 'Unique ID (use the pattern id as base, e.g. "skill-add-i18n-key")' },
+              name: { type: "string", description: "Human-readable name" },
+              type: { type: "string", enum: ["skill", "command", "claude-md", "prompt"] },
+              outputPath: { type: "string", description: 'Relative path from project root (e.g. ".claude/skills/add-i18n-key/SKILL.md")' },
+              content: { type: "string", description: "Full file content to write" }
+            }
+          }
         },
         rejected_ids: {
           type: "array",
           items: { type: "string" },
-          description: "IDs of improvements the user explicitly rejected. They will not be proposed again in future runs."
+          description: "Pattern IDs the user rejected \u2014 will not be proposed again."
         },
         project_root: {
           type: "string",
@@ -31015,32 +30286,23 @@ var TOOLS = [
   }
 ];
 var AnalyzeSchema = external_exports.object({
-  project_root: external_exports.string().optional(),
-  dry_run: external_exports.boolean().default(true)
-});
-var PreviewSchema = external_exports.object({
-  improvement_id: external_exports.string(),
   project_root: external_exports.string().optional()
 });
+var ImprovementInputSchema = external_exports.object({
+  id: external_exports.string(),
+  name: external_exports.string(),
+  type: external_exports.enum(["skill", "command", "claude-md", "prompt"]),
+  outputPath: external_exports.string(),
+  content: external_exports.string()
+});
 var ApplySchema = external_exports.object({
-  improvement_ids: external_exports.array(external_exports.string()).min(1),
+  improvements: external_exports.array(ImprovementInputSchema).min(1),
   rejected_ids: external_exports.array(external_exports.string()).optional(),
   project_root: external_exports.string().optional()
 });
 var HistorySchema = external_exports.object({
   project_root: external_exports.string().optional()
 });
-var cache2 = /* @__PURE__ */ new Map();
-var CACHE_TTL_MS = 10 * 60 * 1e3;
-function getCached(projectRoot) {
-  const entry = cache2.get(projectRoot);
-  if (!entry) return null;
-  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
-    cache2.delete(projectRoot);
-    return null;
-  }
-  return entry;
-}
 var server = new Server(
   { name: "claude-improver", version: "1.0.0" },
   { capabilities: { tools: {} } }
@@ -31051,100 +30313,61 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case "improve_yourself_analyze": {
-        const { project_root, dry_run } = AnalyzeSchema.parse(args ?? {});
+        const { project_root } = AnalyzeSchema.parse(args ?? {});
         const projectRoot = project_root ?? process.cwd();
-        const result = await runImproveYourself({
-          projectRoot,
-          dryRun: dry_run,
-          auto: false
-        });
-        cache2.set(projectRoot, {
-          projectRoot,
-          improvements: result.improvements,
-          timestamp: Date.now()
-        });
-        const report = formatAnalysisReport(result);
-        const ids = result.improvements.map((i, idx) => `  ${idx + 1}. ${i.id}`).join("\n");
+        const result = await runAnalyze(projectRoot);
         return {
-          content: [
-            {
-              type: "text",
-              text: [
-                report,
-                ids ? `
-Available improvement IDs:
-${ids}
-
-Call \`improve_yourself_apply\` with the IDs you want to apply.` : ""
-              ].join("\n")
-            }
-          ]
-        };
-      }
-      case "improve_yourself_preview": {
-        const { improvement_id, project_root } = PreviewSchema.parse(args ?? {});
-        const projectRoot = project_root ?? process.cwd();
-        const cached2 = getCached(projectRoot);
-        if (!cached2) {
-          return {
-            content: [{ type: "text", text: "No analysis in cache. Run improve_yourself_analyze first." }]
-          };
-        }
-        const imp = cached2.improvements.find((i) => i.id === improvement_id);
-        if (!imp) {
-          return {
-            content: [{ type: "text", text: `Improvement "${improvement_id}" not found in last analysis.` }]
-          };
-        }
-        const diff = await renderDiff(imp, projectRoot);
-        return {
-          content: [
-            {
-              type: "text",
-              text: [
-                `## Preview: ${imp.name} (${imp.type})`,
-                "",
-                `Reason  : ${imp.reason}`,
-                `Impact  : ${imp.impact}  |  Score: ${imp.score}`,
-                `Output  : ${imp.outputPath}`,
-                "",
-                "### Diff",
-                "```diff",
-                diff,
-                "```"
-              ].join("\n")
-            }
-          ]
+          content: [{ type: "text", text: result.formattedOutput }]
         };
       }
       case "improve_yourself_apply": {
-        const { improvement_ids, rejected_ids, project_root } = ApplySchema.parse(args ?? {});
+        const { improvements, rejected_ids, project_root } = ApplySchema.parse(args ?? {});
         const projectRoot = project_root ?? process.cwd();
-        const cached2 = getCached(projectRoot);
-        if (!cached2) {
-          return {
-            content: [{ type: "text", text: "No analysis in cache. Run improve_yourself_analyze first." }]
-          };
-        }
-        const toApply = improvement_ids[0] === "all" ? cached2.improvements : cached2.improvements.filter((i) => improvement_ids.includes(i.id));
-        if (toApply.length === 0) {
-          return {
-            content: [{ type: "text", text: "None of the specified IDs matched. Check the IDs and try again." }]
-          };
-        }
-        const result = await applyImprovements(toApply, projectRoot, false);
-        const summary = renderSummaryReport(result, false);
         const store = new ImprovementHistoryStore(projectRoot);
-        if (result.applied.length > 0) {
-          await store.record(result.applied);
-        }
-        if (rejected_ids && rejected_ids.length > 0) {
-          const rejectedImprovements = cached2.improvements.filter((i) => rejected_ids.includes(i.id));
-          if (rejectedImprovements.length > 0) {
-            await store.recordRejections(rejectedImprovements);
+        const applied = [];
+        const errors = [];
+        for (const imp of improvements) {
+          try {
+            const fullPath = import_path6.default.join(projectRoot, imp.outputPath);
+            await writeTextFile(fullPath, imp.content);
+            applied.push(`  \u2713 ${imp.outputPath}  (${imp.type})`);
+          } catch (err) {
+            errors.push(`  \u2717 ${imp.outputPath}: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
-        return { content: [{ type: "text", text: summary }] };
+        if (applied.length > 0) {
+          await store.record(
+            improvements.filter((_, i) => !errors.some((e) => e.includes(improvements[i].outputPath))).map((imp) => ({
+              id: imp.id,
+              name: imp.name,
+              type: imp.type,
+              outputPath: imp.outputPath,
+              generatedContent: imp.content,
+              reason: "",
+              impact: "medium",
+              score: 0,
+              pattern: { id: imp.id, type: "repetitive-workflow", frequency: 0, examples: [], confidence: 0 }
+            }))
+          );
+        }
+        if (rejected_ids && rejected_ids.length > 0) {
+          await store.recordRejections(
+            rejected_ids.map((id) => ({
+              id,
+              name: id,
+              type: "skill",
+              outputPath: "",
+              generatedContent: "",
+              reason: "",
+              impact: "low",
+              score: 0,
+              pattern: { id, type: "repetitive-workflow", frequency: 0, examples: [], confidence: 0 }
+            }))
+          );
+        }
+        const lines = [`Applied ${applied.length} improvement(s):`, "", ...applied];
+        if (errors.length > 0) lines.push("", `Errors (${errors.length}):`, ...errors);
+        return { content: [{ type: "text", text: lines.join("\n") }] };
       }
       case "improve_yourself_history": {
         const { project_root } = HistorySchema.parse(args ?? {});

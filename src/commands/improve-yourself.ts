@@ -1,40 +1,25 @@
-import path from 'path';
-import { AnalysisResult, DetectedPattern, Improvement, ImproveYourselfOptions } from '../types/index.js';
+import { DetectedPattern } from '../types/index.js';
 import { ConversationAnalyzer } from '../analyzers/conversation-analyzer.js';
 import { ErrorDetector } from '../analyzers/error-detector.js';
 import { WorkflowAnalyzer } from '../analyzers/workflow-analyzer.js';
-import { SkillGenerator } from '../generators/skill-generator.js';
-import { CommandGenerator } from '../generators/command-generator.js';
-import { PromptGenerator } from '../generators/prompt-generator.js';
-import { ClaudeMdGenerator } from '../generators/claude-md-generator.js';
 import { ImprovementHistoryStore } from '../storage/improvement-history.js';
-import {
-  renderImprovementsTable,
-  renderDiff,
-  renderConfirmationSummary,
-  applyImprovements,
-  renderSummaryReport,
-} from '../approval/approval-manager.js';
 
-export interface RunResult {
-  analysis: AnalysisResult;
-  improvements: Improvement[];
-  table: string;
-  confirmationPrompt?: string;
-  diffs?: Record<string, string>;
-  applied?: ReturnType<typeof renderSummaryReport>;
+export interface AnalyzeResult {
+  patterns: DetectedPattern[];
+  formattedOutput: string;
+  stats: {
+    conversationsAnalyzed: number;
+    commitsAnalyzed: number;
+    patternsDetected: number;
+    timestamp: string;
+  };
 }
 
 /**
- * Main entry point for the /improve-yourself command.
- *
- * In "analyze" mode (default / dry-run): returns analysis and suggestions.
- * In "apply" mode (selectedIds provided): applies the selected improvements.
+ * Run all analyzers and return detected patterns.
+ * Generation is delegated to Claude via the command file.
  */
-export async function runImproveYourself(opts: ImproveYourselfOptions): Promise<RunResult> {
-  const projectRoot = opts.projectRoot ?? process.cwd();
-
-  // ── Step 1: Run analyzers ─────────────────────────────────────────────────
+export async function runAnalyze(projectRoot: string): Promise<AnalyzeResult> {
   const [convResult, errResult, wfResult] = await Promise.all([
     new ConversationAnalyzer(projectRoot).analyze(),
     new ErrorDetector(projectRoot).analyze(),
@@ -47,113 +32,74 @@ export async function runImproveYourself(opts: ImproveYourselfOptions): Promise<
     ...wfResult.patterns,
   ];
 
-  const stats: AnalysisResult['stats'] = {
+  // Filter previously rejected patterns
+  const store = new ImprovementHistoryStore(projectRoot);
+  const rejectedIds = await store.getRejectedIds();
+  const patterns = allPatterns.filter((p) => !rejectedIds.has(p.id));
+
+  const stats = {
     conversationsAnalyzed: convResult.stats.conversationsAnalyzed,
     commitsAnalyzed: wfResult.stats.commitsAnalyzed,
-    patternsDetected: allPatterns.length,
+    patternsDetected: patterns.length,
     timestamp: new Date().toISOString(),
   };
 
-  // ── Step 2: Generate improvements ─────────────────────────────────────────
-  const skillGen = new SkillGenerator();
-  const cmdGen = new CommandGenerator();
-  const promptGen = new PromptGenerator();
-  const claudeMdGen = new ClaudeMdGenerator(projectRoot);
+  const formattedOutput = formatPatternsForClaude(patterns, stats);
 
-  const rawImprovements: Array<Improvement | null> = [
-    ...allPatterns.flatMap((p) => [
-      skillGen.generateFromPattern(p),
-      cmdGen.generateFromPattern(p),
-      promptGen.generateFromPattern(p),
-    ]),
-    await claudeMdGen.generateFromPatterns(allPatterns),
-  ];
-
-  // Deduplicate by id, sort by score desc
-  const seen = new Set<string>();
-  const store = new ImprovementHistoryStore(projectRoot);
-  const rejectedIds = await store.getRejectedIds();
-
-  const improvements: Improvement[] = rawImprovements
-    .filter((i): i is Improvement => i !== null)
-    .filter((i) => {
-      if (seen.has(i.id)) return false;
-      seen.add(i.id);
-      return true;
-    })
-    .filter((i) => !rejectedIds.has(i.id))
-    .sort((a, b) => b.score - a.score);
-
-  const analysis: AnalysisResult = { patterns: allPatterns, improvements, stats };
-
-  // ── Step 3: Handle apply mode ─────────────────────────────────────────────
-  if (opts.selectedIds && opts.selectedIds.length > 0 && !opts.dryRun) {
-    const toApply = improvements.filter((i) => opts.selectedIds!.includes(i.id));
-    const result = await applyImprovements(toApply, projectRoot, false);
-
-    // Record history
-    if (result.applied.length > 0) {
-      const store = new ImprovementHistoryStore(projectRoot);
-      await store.record(result.applied);
-    }
-
-    return {
-      analysis,
-      improvements,
-      table: renderImprovementsTable(improvements),
-      applied: renderSummaryReport(result, false),
-    };
-  }
-
-  // ── Step 4: Dry-run / analysis mode ───────────────────────────────────────
-  const table = renderImprovementsTable(improvements);
-  const confirmationPrompt = improvements.length > 0
-    ? renderConfirmationSummary(improvements)
-    : 'No improvements detected.';
-
-  // Generate diffs for all improvements
-  const diffs: Record<string, string> = {};
-  for (const imp of improvements) {
-    diffs[imp.id] = await renderDiff(imp, projectRoot);
-  }
-
-  return { analysis, improvements, table, confirmationPrompt, diffs };
+  return { patterns, formattedOutput, stats };
 }
 
-/**
- * Format a complete analysis report suitable for display.
- */
-export function formatAnalysisReport(result: RunResult): string {
-  const { analysis, table, confirmationPrompt } = result;
-
-  const statsBlock = [
+function formatPatternsForClaude(
+  patterns: DetectedPattern[],
+  stats: AnalyzeResult['stats'],
+): string {
+  const lines: string[] = [
     '## Analysis Summary',
     '',
-    `  Conversations analyzed : ${analysis.stats.conversationsAnalyzed}`,
-    `  Commits analyzed       : ${analysis.stats.commitsAnalyzed}`,
-    `  Patterns detected      : ${analysis.stats.patternsDetected}`,
-    `  Improvements proposed  : ${analysis.improvements.length}`,
-    `  Timestamp              : ${analysis.stats.timestamp}`,
+    `  Conversations analyzed : ${stats.conversationsAnalyzed}`,
+    `  Commits analyzed       : ${stats.commitsAnalyzed}`,
+    `  Patterns detected      : ${stats.patternsDetected}`,
+    `  Timestamp              : ${stats.timestamp}`,
     '',
-  ].join('\n');
+  ];
 
-  const tableBlock = ['## Suggested Improvements', '', table, ''].join('\n');
+  if (patterns.length === 0) {
+    lines.push('No patterns detected. Use Claude more on this project to generate history.');
+    return lines.join('\n');
+  }
 
-  const patternsBlock = analysis.patterns.length > 0
-    ? [
-        '## Detected Patterns',
-        '',
-        ...analysis.patterns.map(
-          (p) =>
-            `  [${p.type.padEnd(22)}] freq=${String(p.frequency).padStart(3)}  conf=${Math.round(p.confidence * 100)}%  id=${p.id}`,
-        ),
-        '',
-      ].join('\n')
-    : '';
+  lines.push('## Detected Patterns');
+  lines.push('');
+  lines.push('> Use these patterns to generate project-specific skills, commands, and CLAUDE.md rules.');
+  lines.push('> Then call `improve_yourself_apply` with your generated improvements.');
+  lines.push('');
 
-  const confirmBlock = confirmationPrompt
-    ? ['## Next Steps', '', confirmationPrompt, ''].join('\n')
-    : '';
+  for (const p of patterns) {
+    lines.push(`---`);
+    lines.push(`**${p.id}** (${p.type})`);
+    lines.push(`- Frequency  : ${p.frequency} occurrences`);
+    lines.push(`- Confidence : ${Math.round(p.confidence * 100)}%`);
+    if (p.examples.length > 0) {
+      lines.push(`- Examples   :`);
+      for (const ex of p.examples.slice(0, 3)) {
+        lines.push(`    - ${ex}`);
+      }
+    }
+    if (p.metadata && Object.keys(p.metadata).length > 0) {
+      const meta = JSON.stringify(p.metadata, null, 0).slice(0, 200);
+      lines.push(`- Metadata   : ${meta}`);
+    }
+    lines.push('');
+  }
 
-  return [statsBlock, tableBlock, patternsBlock, confirmBlock].filter(Boolean).join('\n');
+  lines.push('---');
+  lines.push('');
+  lines.push('## Output paths');
+  lines.push('');
+  lines.push('- skill     → `.claude/skills/<name>/SKILL.md`');
+  lines.push('- command   → `.claude/commands/<name>.md`');
+  lines.push('- claude-md → `CLAUDE.md` (append)');
+  lines.push('- prompt    → `.claude/prompts/<name>.md`');
+
+  return lines.join('\n');
 }

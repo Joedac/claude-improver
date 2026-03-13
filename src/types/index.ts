@@ -62,6 +62,14 @@ export interface ImproveYourselfOptions {
   selectedIds?: string[];
 }
 
+export interface ImprovementInput {
+  id: string;
+  name: string;
+  type: ImprovementType;
+  outputPath: string;
+  content: string;
+}
+
 export interface ConversationEntry {
   role: 'user' | 'assistant';
   content: string;
