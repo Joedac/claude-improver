@@ -4,4 +4,6 @@ node_modules/
 *.tsbuildinfo
 .DS_Store
 *.local
-.claude/
+.claude/*
+!.claude/commands/
+!.claude/commands/**
