@@ -1,0 +1,18 @@
+{
+  "name": "claude-improver",
+  "owner": {
+    "name": "Joedac",
+    "email": "jonathanr@netvigie.com"
+  },
+  "plugins": [
+    {
+      "name": "claude-improver",
+      "description": "Analyzes past interactions and repo patterns to propose actionable self-improvements.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Joedac"
+      },
+      "source": "Joedac/claude-improver"
+    }
+  ]
+}

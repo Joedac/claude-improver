@@ -1,0 +1,14 @@
+{
+  "name": "claude-improver",
+  "description": "Analyzes your past interactions and repo patterns to propose actionable self-improvements: new skills, commands, and CLAUDE.md updates.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Joedac",
+    "url": "https://github.com/Joedac"
+  },
+  "repository": "https://github.com/Joedac/claude-improver",
+  "license": "MIT",
+  "keywords": ["improvement", "analysis", "skills", "automation"],
+  "skills": "./skills",
+  "commands": "./.claude/commands"
+}
