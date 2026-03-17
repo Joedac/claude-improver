@@ -38,31 +38,19 @@ git log --name-only --format='COMMIT: %s' -50 2>/dev/null
 Extract: files modified most often (hot files), recurring commit message patterns, conventional commit types (feat/fix/refactor...).
 
 **Session history:**
-```bash
-ENCODED=$(echo "$PWD" | sed 's|/|-|g') && ls ~/.claude/projects/${ENCODED}/*.jsonl 2>/dev/null | sort -t_ -k1 -r | head -5
+
+Use Glob to find the 5 most recent JSONL files:
 ```
-For each file found, extract using this reliable approach:
-```bash
-python3 -c "
-import json, sys
-data = []
-for line in open('$FILE'):
-    try:
-        r = json.loads(line)
-        msg = r.get('message', {})
-        role = msg.get('role', '')
-        content = msg.get('content', [])
-        if isinstance(content, list):
-            for block in content:
-                if role == 'user' and block.get('type') == 'text':
-                    data.append(('user', block.get('text', '')[:200]))
-                elif role == 'assistant' and block.get('type') == 'tool_use':
-                    data.append(('tool', block.get('name','') + ': ' + json.dumps(block.get('input',{}))[:100]))
-    except: pass
-for r,t in data[-50:]: print(r + ' | ' + t[:150])
-"
+~/.claude/projects/<encoded-pwd>/*.jsonl
 ```
-Extract: repeated user requests, frequently run Bash commands (normalize: `npm test`, `git commit`, `composer install`...), frequently edited files via Edit/Write tool calls.
+where `<encoded-pwd>` is `$PWD` with `/` replaced by `-`.
+
+Read each file with the Read tool. Each line is a JSON object. Extract:
+- Lines where `message.role == "user"` and `message.content[].type == "text"` → user requests
+- Lines where `message.role == "assistant"` and `message.content[].type == "tool_use"` and `name == "Bash"` → commands run
+- Lines where `message.role == "assistant"` and `message.content[].type == "tool_use"` and `name` in `["Edit","Write"]` → files edited
+
+Extract: repeated user requests, frequently run Bash commands (normalize: `npm test`, `git commit`, `composer install`...), frequently edited files.
 
 ## Step 3 — Generate suggestions
 
